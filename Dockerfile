@@ -1,25 +1,21 @@
-# FROM golang:1.19-alpine AS build
-# ADD . /src
-# WORKDIR /src
-# # RUN go get -d -v -t -- guy's not needed 
-# RUN GOOS=linux GOARCH=amd64 go build -v -o paywalletengine
-
-# FROM alpine:3.17.2
-# # EXPOSE 8080 -- guy's not needed
-# CMD ["paywalletengine"]
-# ENV VERSION 1.1.4
-# COPY --from=build /src/paywalletengine /usr/local/bin/paywalletengine
-# RUN chmod +x /usr/local/bin/paywalletengine
-
-FROM golang:1.19-alpine AS build
+# Builder stage
+FROM golang:1.19.1 as builder
 
 WORKDIR /app
 
-COPY cmd/server .
+COPY . .
 
-RUN GOOS=linux GOARCH=amd64 go build -o paywalletengine ./main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o paywalletengine cmd/server/main.go
 
-# Set the correct permissions for the binary
-RUN chmod +x paywalletengine
+# Final stage
+FROM alpine:latest
 
-CMD ["./paywalletengine"]
+
+
+# Copy the built application binary from the builder stage to the current directory of the final stage
+COPY --from=builder /app/paywalletengine .
+
+ # Set the entrypoint command to run the "appName" binary when the container starts
+ENTRYPOINT ["./paywalletengine"]
+
+
