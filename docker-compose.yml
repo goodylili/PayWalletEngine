@@ -1,10 +1,9 @@
 version: "3.8"
 
-
 services:
   db:
     image: postgres:12.2-alpine
-    container_name: "paywalletengine"
+    container_name: "paywalletenginedatabase"
     ports:
       - "5432:5432"
     environment:
@@ -14,19 +13,17 @@ services:
     networks:
       - fullstack
     volumes:
-      - databases_postgres:/var/lib/postgresql/databases
+      - databases_postgres:/var/lib/postgresql/data # Changed the path to the default Postgres data directory
 
-
-
-  api:c
-    build:
-    container_name: "comments-rest-api!"
+  api:
+    build: .
+    container_name: "paywalletengine"
     environment:
       DB_USERNAME: "postgres"
       DB_DB: "postgres"
-      DB HOST: "db"
-      DB TABLE: "postgres"
-      DB PORT: "5432"
+      DB_HOST: "db"
+      DB_TABLE: "postgres"
+      DB_PORT: "5432"
       SSL_MODE: "disable"
     ports:
       - "8080:8080"
@@ -34,11 +31,13 @@ services:
       - db
     networks:
       - fullstack
-
-
-volumes:
-  database_postgres:
+    volumes:
+      - database_postgres:/usr/local/var/postgres
 
 networks:
   fullstack:
     driver: bridge
+
+volumes:
+  databases_postgres:
+  database_postgres:
