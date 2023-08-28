@@ -11,6 +11,7 @@ import (
 // User -  a representation of the users of the wallet engine
 type User struct {
 	gorm.Model
+	UserID   int     `json:"userID"`
 	Username string  `json:"username"` // username for the user
 	Email    string  `json:"email"`    // email address for the user
 	Password string  `json:"password"` // hashed password for the user

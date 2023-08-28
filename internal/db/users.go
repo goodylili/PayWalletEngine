@@ -7,6 +7,7 @@ import (
 
 type User struct {
 	gorm.Model
+	UserID   int     `gorm:"unique;not null"` // username for the user
 	Username string  `gorm:"unique;not null"` // username for the user
 	Email    string  `gorm:"unique;not null"` // email address for the user
 	Password string  `gorm:"not null"`        // hashed password for the user
@@ -34,12 +35,12 @@ func (d *Database) GetByUsername(ctx context.Context, username string) (*User, e
 	return &u, err
 }
 
-// Update updates a user in the database.
-func (d *Database) Update(ctx context.Context, user *User) error {
+// UpdateUser updates a user in the database.
+func (d *Database) UpdateUser(ctx context.Context, user *User) error {
 	return d.Client.WithContext(ctx).Save(user).Error
 }
 
-// Delete deletes a user by its ID from the database.
-func (d *Database) Delete(ctx context.Context, ID uint) error {
+// DeleteUser deletes a user by its ID from the database.
+func (d *Database) DeleteUser(ctx context.Context, ID uint) error {
 	return d.Client.WithContext(ctx).Delete(&User{}, ID).Error
 }
