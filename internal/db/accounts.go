@@ -15,7 +15,7 @@ import (
 
 type Account struct {
 	gorm.Model
-	AccountOwner  users.User `gorm:"foreignkey:AccountOwnerID"`
+	AccountOwner  users.User `gorm:"foreignkey:UserID"`
 	AccountID     string     `gorm:"type:varchar(100);uniqueIndex"`
 	AccountNumber string     `gorm:"type:varchar(100);uniqueIndex"`
 	AccountType   string     `gorm:"type:varchar(50)"`

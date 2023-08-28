@@ -44,3 +44,8 @@ func (d *Database) UpdateUser(ctx context.Context, user *User) error {
 func (d *Database) DeleteUser(ctx context.Context, ID uint) error {
 	return d.Client.WithContext(ctx).Delete(&User{}, ID).Error
 }
+
+// CreateUser creates a new user in the database.
+func (d *Database) CreateUser(ctx context.Context, user *User) error {
+	return d.Client.WithContext(ctx).Create(user).Error
+}
