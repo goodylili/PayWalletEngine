@@ -23,9 +23,14 @@ func Run() error {
 		return err
 	}
 	log.Println("Successfully connected to the database")
-	return nil
-}
 
+	if err := database.MigrateDB(); err != nil {
+		log.Println("failed to setup database migrations")
+		return err
+	}
+	return nil
+
+}
 func main() {
 	fmt.Println("GO REST API Course")
 	if err := Run(); err != nil {

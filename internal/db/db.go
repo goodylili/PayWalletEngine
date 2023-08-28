@@ -11,8 +11,8 @@ type Database struct {
 	Client *gorm.DB
 }
 
-func (db *Database) HealthCheck() error {
-	sqlDB, err := db.Client.DB()
+func (d *Database) HealthCheck() error {
+	sqlDB, err := d.Client.DB()
 	if err != nil {
 		return err
 	}
