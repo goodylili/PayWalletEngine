@@ -24,6 +24,7 @@ type Store interface {
 	GetUser(context.Context, string) (User, error)
 	GetAllUsers(context.Context) ([]*User, error)
 	CreateUser(ctx context.Context, user *User) error
+	Ping(context.Context) error
 }
 
 var (
@@ -33,20 +34,20 @@ var (
 	ErrDeletingUser  = errors.New("could not delete comment")
 )
 
-// Service is the blueprint for the user logic
-type Service struct {
+// UserService is the blueprint for the user logic
+type UserService struct {
 	Store Store
 }
 
 // NewService creates a new service
-func NewService(store Store) *Service {
-	return &Service{
+func NewService(store Store) *UserService {
+	return &UserService{
 		Store: store,
 	}
 }
 
-func (s *Service) GetUser(ctx context.Context, userID string) (User, error) {
-	user, err := s.Store.GetUser(ctx, userID)
+func (u *UserService) GetUser(ctx context.Context, userID string) (User, error) {
+	user, err := u.Store.GetUser(ctx, userID)
 	if err != nil {
 		log.Printf("Error fetching user with ID %s: %v", userID, err)
 		return user, err
@@ -55,7 +56,7 @@ func (s *Service) GetUser(ctx context.Context, userID string) (User, error) {
 	return user, nil
 }
 
-func (s *Service) CreateUser(ctx context.Context, user *User) error {
+func (u *UserService) CreateUser(ctx context.Context, user *User) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("Error hashing password: %v", err)
@@ -63,7 +64,7 @@ func (s *Service) CreateUser(ctx context.Context, user *User) error {
 	}
 	user.Password = string(hashedPassword)
 
-	if err := s.Store.CreateUser(ctx, user); err != nil {
+	if err := u.Store.CreateUser(ctx, user); err != nil {
 		log.Printf("Error creating user: %v", err)
 		return err
 	}
@@ -71,8 +72,8 @@ func (s *Service) CreateUser(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (s *Service) UpdateUser(ctx context.Context, user User) error {
-	if err := s.Store.UpdateUser(ctx, user); err != nil {
+func (u *UserService) UpdateUser(ctx context.Context, user User) error {
+	if err := u.Store.UpdateUser(ctx, user); err != nil {
 		log.Printf("Error updating user: %v", err)
 		return err
 	}
@@ -80,8 +81,8 @@ func (s *Service) UpdateUser(ctx context.Context, user User) error {
 	return nil
 }
 
-func (s *Service) DeleteUser(ctx context.Context, userID string) error {
-	if err := s.Store.DeleteUser(ctx, userID); err != nil {
+func (u *UserService) DeleteUser(ctx context.Context, userID string) error {
+	if err := u.Store.DeleteUser(ctx, userID); err != nil {
 		log.Printf("Error deleting user with ID %s: %v", userID, err)
 		return err
 	}
@@ -89,8 +90,8 @@ func (s *Service) DeleteUser(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (s *Service) GetAllUsers(ctx context.Context) ([]*User, error) {
-	users, err := s.Store.GetAllUsers(ctx)
+func (u *UserService) GetAllUsers(ctx context.Context) ([]*User, error) {
+	users, err := u.Store.GetAllUsers(ctx)
 	if err != nil {
 		log.Printf("Error fetching all users: %v", err)
 		return nil, err
@@ -99,7 +100,7 @@ func (s *Service) GetAllUsers(ctx context.Context) ([]*User, error) {
 	return users, nil
 }
 
-func (s *Service) UpdatePassword(ctx context.Context, userID string, newPassword string) error {
+func (u *UserService) UpdatePassword(ctx context.Context, userID string, newPassword string) error {
 	// Hash the new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {
@@ -108,7 +109,7 @@ func (s *Service) UpdatePassword(ctx context.Context, userID string, newPassword
 	}
 
 	// Get the user by userID
-	user, err := s.Store.GetUser(ctx, userID)
+	user, err := u.Store.GetUser(ctx, userID)
 	if err != nil {
 		log.Printf("Error fetching user with ID %s: %v", userID, err)
 		return err
@@ -118,10 +119,16 @@ func (s *Service) UpdatePassword(ctx context.Context, userID string, newPassword
 	user.Password = string(hashedPassword)
 
 	// Update the user in the store
-	if err := s.Store.UpdateUser(ctx, user); err != nil {
+	if err := u.Store.UpdateUser(ctx, user); err != nil {
 		log.Printf("Error updating password for user with ID %s: %v", userID, err)
 		return err
 	}
 
 	return nil
+}
+
+// ReadyCheck - a function that tests we are functionally ready to serve requests
+func (u *UserService) ReadyCheck(ctx context.Context) error {
+	log.Println("Checking readiness")
+	return u.Store.Ping(ctx)
 }

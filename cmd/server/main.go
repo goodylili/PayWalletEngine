@@ -2,6 +2,9 @@ package main
 
 import (
 	"PayWalletEngine/internal/db"
+	transportHTTP "PayWalletEngine/internal/transport/http"
+	"PayWalletEngine/internal/users"
+
 	"fmt"
 	"log"
 )
@@ -28,6 +31,11 @@ func Run() error {
 		log.Println("failed to setup database migrations")
 		return err
 	}
+
+	userService := users.NewService(database)
+
+	transportHTTP.NewHandler()
+
 	return nil
 
 }
