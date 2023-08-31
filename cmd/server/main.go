@@ -2,7 +2,7 @@ package main
 
 import (
 	"PayWalletEngine/internal/db"
-	transportHTTP "PayWalletEngine/internal/transport/http"
+	//transportHTTP "PayWalletEngine/internal/transport/http"
 	"PayWalletEngine/internal/users"
 
 	"fmt"
@@ -12,29 +12,23 @@ import (
 // Run - is going to be responsible for / the instantiation and startup of our / go application
 func Run() error {
 	fmt.Println("starting up the application...")
-	dsn, err := db.LoadConfig()
-	if err != nil {
-		log.Println("LoadConfig Error")
-		return err
-	}
-	database, err := db.NewDatabase(dsn)
+
+	store, err := db.NewDatabase(dsn)
 	if err != nil {
 		log.Println("Database Connection Failure")
 		return err
 	}
-	if err := database.HealthCheck(); err != nil {
+	if err := store.Ping(); err != nil {
 		return err
 	}
-	log.Println("Successfully connected to the database")
+	log.Println("Successfully connected to the store")
 
-	if err := database.MigrateDB(); err != nil {
-		log.Println("failed to setup database migrations")
+	if err := store.MigrateDB(); err != nil {
+		log.Println("failed to setup store migrations")
 		return err
 	}
 
-	userService := users.NewService(database)
-
-	transportHTTP.NewHandler()
+	userService := users.NewService(store)
 
 	return nil
 

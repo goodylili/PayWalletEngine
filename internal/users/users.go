@@ -2,7 +2,6 @@ package users
 
 import (
 	"context"
-	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"log"
@@ -18,7 +17,7 @@ type User struct {
 	Balance  float64 `json:"balance"`  // current balance for the user's wallet
 }
 
-type Store interface {
+type UserStore interface {
 	UpdateUser(context.Context, User) error
 	DeleteUser(context.Context, string) error
 	GetUser(context.Context, string) (User, error)
@@ -27,20 +26,13 @@ type Store interface {
 	Ping(context.Context) error
 }
 
-var (
-	ErrFetchingUser  = errors.New("could not fetch comment by ID")
-	ErrUpdatingUser  = errors.New("could not update comment")
-	ErrNoCommentUser = errors.New("no comment found")
-	ErrDeletingUser  = errors.New("could not delete comment")
-)
-
 // UserService is the blueprint for the user logic
 type UserService struct {
-	Store Store
+	Store UserStore
 }
 
 // NewService creates a new service
-func NewService(store Store) *UserService {
+func NewService(store UserStore) *UserService {
 	return &UserService{
 		Store: store,
 	}
