@@ -50,7 +50,7 @@ func NewHandler(users users.UserService, transactions transactions.TransactionSe
 	//	h.Router.Use(TimeoutMiddleware)
 
 	h.Server = &http.Server{
-		Addr:         "0.0.0.0:8080", // Good practice to set timeouts to avoid Slowloris attacks.
+		Addr:         "0.0.0.0:8080", // Good practice to set timeouts to avoid Slow-loris attacks.
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
@@ -67,18 +67,30 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/alive", h.AliveCheck).Methods("GET")
 	h.Router.HandleFunc("/ready", h.ReadyCheck).Methods("GET")
 
+	// Users Routes
+	h.Router.HandleFunc("/api/v1/user", h.CreateUser).Methods("POST")
+	h.Router.HandleFunc("/api/v1/users/{id}", h.GetUser).Methods("GET")
+	h.Router.HandleFunc("/api/v1/users/email/{email}", h.GetByEmail).Methods("GET")
+	h.Router.HandleFunc("/api/v1/users/username/{username}", h.GetByUsername).Methods("GET")
+	h.Router.HandleFunc("/api/v1/users/{id}", h.UpdateUser).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/users/{id}", h.DeleteUser).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/users/ping", h.Ping).Methods("GET")
+
+	// Account Routes
+	h.Router.HandleFunc("/api/v1/account", h.CreateAccount).Methods("POST")
+	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetAccountByID).Methods("GET")
+	h.Router.HandleFunc("/api/v1/accounts/number/{number}", h.GetAccountByNumber).Methods("GET")
+	h.Router.HandleFunc("/api/v1/accounts/{id}", h.UpdateAccountDetails).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/accounts/balance/{number}/{amount}", h.UpdateAccountBalance).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/accounts/{id}", h.DeleteAccountDetails).Methods("DELETE")
+
 	// Transactions Routes
-	h.Router.HandleFunc("/api/v1/transaction", )
-
-	//Users Routes
-	``
-
-	//Account Routes
-
-	//h.Router.HandleFunc("/api/v1/comment", h.PostComment).Methods("POST")
-	//h.Router.HandleFunc("/api/v1/comment/{id}", h.GetComment).Methods("GET")
-	//h.Router.HandleFunc("/api/v1/comment/{id}", JWTAuth(h.UpdateComment)).Methods("PUT")
-	//h.Router.HandleFunc("/api/v1/comment/{id}", JWTAuth(h.DeleteComment)).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/transaction", h.CreateTransaction).Methods("POST")
+	h.Router.HandleFunc("/api/v1/transactions/{id}", h.GetTransactionByTransactionID).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/sender/{accountNumber}", h.GetTransactionsBySender).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/receiver/{accountNumber}", h.GetTransactionsByReceiver).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transaction/{id}", h.UpdateTransaction).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/transaction/{id}", h.DeleteTransactionByID).Methods("DELETE")
 
 }
 
