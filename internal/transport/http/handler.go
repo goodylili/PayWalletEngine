@@ -62,8 +62,19 @@ func NewHandler(users users.UserService, transactions transactions.TransactionSe
 
 // mapRoutes - sets up all the routes for our application
 func (h *Handler) mapRoutes() {
-	//h.Router.HandleFunc("/alive", h.AliveCheck).Methods("GET")
-	//h.Router.HandleFunc("/ready", h.ReadyCheck).Methods("GET")
+
+	// Server Health and Ready Check Routes
+	h.Router.HandleFunc("/alive", h.AliveCheck).Methods("GET")
+	h.Router.HandleFunc("/ready", h.ReadyCheck).Methods("GET")
+
+	// Transactions Routes
+	h.Router.HandleFunc("/api/v1/transaction", )
+
+	//Users Routes
+	``
+
+	//Account Routes
+
 	//h.Router.HandleFunc("/api/v1/comment", h.PostComment).Methods("POST")
 	//h.Router.HandleFunc("/api/v1/comment/{id}", h.GetComment).Methods("GET")
 	//h.Router.HandleFunc("/api/v1/comment/{id}", JWTAuth(h.UpdateComment)).Methods("PUT")
@@ -71,22 +82,22 @@ func (h *Handler) mapRoutes() {
 
 }
 
-func (h *Handler) AliveCheck(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(Response{Message: "I am Alive!"}); err != nil {
+func (h *Handler) AliveCheck(writer http.ResponseWriter, request *http.Request) {
+	writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	writer.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(writer).Encode(Response{Message: "I am Alive!"}); err != nil {
 		panic(err)
 	}
 }
 
-func (h *Handler) ReadyCheck(w http.ResponseWriter, r *http.Request) {
-	if err := h.Users.ReadyCheck(r.Context()); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+func (h *Handler) ReadyCheck(writer http.ResponseWriter, request *http.Request) {
+	if err := h.Users.ReadyCheck(request.Context()); err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(Response{Message: "I am Ready!"}); err != nil {
+	writer.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(writer).Encode(Response{Message: "I am Ready!"}); err != nil {
 		panic(err)
 	}
 
