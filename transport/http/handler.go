@@ -89,6 +89,7 @@ func (h *Handler) ReadyCheck(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(Response{Message: "I am Ready!"}); err != nil {
 		panic(err)
 	}
+
 }
 
 // Serve - gracefully serves our newly set up handler function
@@ -103,7 +104,7 @@ func (h *Handler) Serve() error {
 	signal.Notify(c, syscall.SIGTERM)
 	<-c
 
-	// Create a deadline to wait for
+	// CreateAccount a deadline to wait for
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	err := h.Server.Shutdown(ctx)

@@ -19,12 +19,12 @@ type Account struct {
 }
 
 type AccountStore interface {
-	UpdateAccountDetails(context.Context, Account) error
-	DeleteAccount(context.Context, string) error
-	GetAccount(context.Context, string) (Account, error)
-	GetAllAccounts(context.Context) ([]*Account, error)
 	CreateAccount(ctx context.Context, account *Account) error
+	GetAccountByID(context.Context, int64) (Account, error)
+	GetAccountByNumber(context.Context, int64) (Account, error)
+	UpdateAccountDetails(context.Context, Account) error
 	UpdateAccountBalance(context.Context, string, float64) error
+	DeleteAccountDetails(context.Context, int64) error
 }
 
 // AccountService is the blueprint for the account logic
@@ -39,8 +39,8 @@ func NewAccountService(store AccountStore) *AccountService {
 	}
 }
 
-func (s *AccountService) GetAccount(ctx context.Context, accountID string) (Account, error) {
-	account, err := s.Store.GetAccount(ctx, accountID)
+func (s *AccountService) GetAccountByID(ctx context.Context, accountID int64) (Account, error) {
+	account, err := s.Store.GetAccountByID(ctx, accountID)
 	if err != nil {
 		log.Printf("Error fetching account with ID %s: %v", accountID, err)
 		return account, err
@@ -67,8 +67,8 @@ func (s *AccountService) UpdateAccountDetails(ctx context.Context, account Accou
 	return nil
 }
 
-func (s *AccountService) DeleteAccount(ctx context.Context, accountID string) error {
-	if err := s.Store.DeleteAccount(ctx, accountID); err != nil {
+func (s *AccountService) DeleteAccountDetails(ctx context.Context, accountID int) error {
+	if err := s.Store.DeleteAccountDetails(ctx, int64(accountID)); err != nil {
 		log.Printf("Error deleting account with ID %s: %v", accountID, err)
 		return err
 	}
@@ -76,19 +76,9 @@ func (s *AccountService) DeleteAccount(ctx context.Context, accountID string) er
 	return nil
 }
 
-func (s *AccountService) GetAllAccounts(ctx context.Context) ([]*Account, error) {
-	accounts, err := s.Store.GetAllAccounts(ctx)
-	if err != nil {
-		log.Printf("Error fetching all accounts: %v", err)
-		return nil, err
-	}
-
-	return accounts, nil
-}
-
-func (s *AccountService) UpdateAccountBalance(ctx context.Context, accountID string, newBalance float64) error {
+func (s *AccountService) UpdateAccountBalance(ctx context.Context, accountID int64, newBalance float64) error {
 	// Get the account by accountID
-	account, err := s.Store.GetAccount(ctx, accountID)
+	account, err := s.Store.GetAccountByID(ctx, accountID)
 	if err != nil {
 		log.Printf("Error fetching account with ID %s: %v", accountID, err)
 		return err
@@ -104,4 +94,14 @@ func (s *AccountService) UpdateAccountBalance(ctx context.Context, accountID str
 	}
 
 	return nil
+}
+
+func (s *AccountService) GetAccountByNumber(ctx context.Context, accountNumber int64) (Account, error) {
+	account, err := s.Store.GetAccountByNumber(ctx, accountNumber)
+	if err != nil {
+		log.Printf("Error fetching account with number %d: %v", accountNumber, err)
+		return account, err
+	}
+
+	return account, nil
 }

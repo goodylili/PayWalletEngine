@@ -21,8 +21,9 @@ type UserStore interface {
 	UpdateUser(context.Context, User) error
 	DeleteUser(context.Context, string) error
 	GetUser(context.Context, string) (User, error)
-	GetAllUsers(context.Context) ([]*User, error)
-	CreateUser(ctx context.Context, user *User) error
+	GetByEmail(context.Context, string) (*User, error)
+	GetByUsername(context.Context, string) (*User, error)
+	CreateUser(context.Context, *User) error
 	Ping(context.Context) error
 }
 
@@ -82,16 +83,6 @@ func (u *UserService) DeleteUser(ctx context.Context, userID string) error {
 	return nil
 }
 
-func (u *UserService) GetAllUsers(ctx context.Context) ([]*User, error) {
-	users, err := u.Store.GetAllUsers(ctx)
-	if err != nil {
-		log.Printf("Error fetching all users: %v", err)
-		return nil, err
-	}
-
-	return users, nil
-}
-
 func (u *UserService) UpdatePassword(ctx context.Context, userID string, newPassword string) error {
 	// Hash the new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
@@ -123,4 +114,24 @@ func (u *UserService) UpdatePassword(ctx context.Context, userID string, newPass
 func (u *UserService) ReadyCheck(ctx context.Context) error {
 	log.Println("Checking readiness")
 	return u.Store.Ping(ctx)
+}
+
+func (u *UserService) GetByEmail(ctx context.Context, email string) (*User, error) {
+	user, err := u.Store.GetByEmail(ctx, email)
+	if err != nil {
+		log.Printf("Error fetching user with email %s: %v", email, err)
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (u *UserService) GetByUsername(ctx context.Context, username string) (*User, error) {
+	user, err := u.Store.GetByUsername(ctx, username)
+	if err != nil {
+		log.Printf("Error fetching user with username %s: %v", username, err)
+		return nil, err
+	}
+
+	return user, nil
 }

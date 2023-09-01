@@ -1,6 +1,7 @@
 package db
 
 import (
+	"PayWalletEngine/internal/users"
 	"context"
 	"gorm.io/gorm"
 )
@@ -14,38 +15,95 @@ type User struct {
 	Balance  float64 `gorm:"default:0"`       // current balance for the user's wallet
 }
 
-// GetByID fetches a user by its ID from the database.
-func (d *Database) GetByID(ctx context.Context, ID uint) (*User, error) {
-	var u User
-	err := d.Client.WithContext(ctx).First(&u, ID).Error
-	return &u, err
+func (d *Database) UpdateUser(ctx context.Context, user users.User) error {
+	dbUser := User{
+		UserID:   user.UserID,
+		Username: user.Username,
+		Email:    user.Email,
+		Password: user.Password,
+		Balance:  user.Balance,
+	}
+	if err := d.Client.WithContext(ctx).Save(&dbUser).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
-// GetByEmail fetches a user by its email from the database.
-func (d *Database) GetByEmail(ctx context.Context, email string) (*User, error) {
-	var u User
-	err := d.Client.WithContext(ctx).Where("email = ?", email).First(&u).Error
-	return &u, err
+func (d *Database) DeleteUser(ctx context.Context, s string) error {
+	user := User{}
+	if err := d.Client.WithContext(ctx).Where("username = ?", s).Delete(&user).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
-// GetByUsername fetches a user by its username from the database.
-func (d *Database) GetByUsername(ctx context.Context, username string) (*User, error) {
-	var u User
-	err := d.Client.WithContext(ctx).Where("username = ?", username).First(&u).Error
-	return &u, err
+func (d *Database) GetUser(ctx context.Context, s string) (users.User, error) {
+	dbUser := User{}
+	if err := d.Client.WithContext(ctx).Where("username = ?", s).First(&dbUser).Error; err != nil {
+		return users.User{}, err
+	}
+	return users.User{
+		UserID:   dbUser.UserID,
+		Username: dbUser.Username,
+		Email:    dbUser.Email,
+		Password: dbUser.Password,
+		Balance:  dbUser.Balance,
+	}, nil
 }
 
-// UpdateUser updates a user in the database.
-func (d *Database) UpdateUser(ctx context.Context, user *User) error {
-	return d.Client.WithContext(ctx).Save(user).Error
+func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
+	dbUser := User{
+		UserID:   user.UserID,
+		Username: user.Username,
+		Email:    user.Email,
+		Password: user.Password,
+		Balance:  user.Balance,
+	}
+	if err := d.Client.WithContext(ctx).Create(&dbUser).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
-// DeleteUser deletes a user by its ID from the database.
-func (d *Database) DeleteUser(ctx context.Context, ID uint) error {
-	return d.Client.WithContext(ctx).Delete(&User{}, ID).Error
+func (d *Database) Ping(ctx context.Context) error {
+	sqlDB, err := d.Client.DB()
+	if err != nil {
+		return err
+	}
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
-// CreateUser creates a new user in the database.
-func (d *Database) CreateUser(ctx context.Context, user *User) error {
-	return d.Client.WithContext(ctx).Create(user).Error
+// ...
+
+func (d *Database) GetByEmail(ctx context.Context, email string) (*users.User, error) {
+	var dbUser User
+	err := d.Client.WithContext(ctx).Where("email = ?", email).First(&dbUser).Error
+	if err != nil {
+		return nil, err
+	}
+	return &users.User{
+		UserID:   dbUser.UserID,
+		Username: dbUser.Username,
+		Email:    dbUser.Email,
+		Password: dbUser.Password,
+		Balance:  dbUser.Balance,
+	}, nil
+}
+
+func (d *Database) GetByUsername(ctx context.Context, username string) (*users.User, error) {
+	var dbUser User
+	err := d.Client.WithContext(ctx).Where("username = ?", username).First(&dbUser).Error
+	if err != nil {
+		return nil, err
+	}
+	return &users.User{
+		UserID:   dbUser.UserID,
+		Username: dbUser.Username,
+		Email:    dbUser.Email,
+		Password: dbUser.Password,
+		Balance:  dbUser.Balance,
+	}, nil
 }
