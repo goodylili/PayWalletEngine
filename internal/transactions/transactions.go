@@ -19,9 +19,9 @@ type Transaction struct {
 
 type TransactionStore interface {
 	CreateTransaction(ctx context.Context, transaction *Transaction) error
-	GetTransactionByTransactionID(ctx context.Context, transactionID string) (*Transaction, error)
+	GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*Transaction, error)
 	UpdateTransaction(ctx context.Context, transaction *Transaction) error
-	DeleteTransactionByID(ctx context.Context, transactionID string) error
+	DeleteTransactionByID(ctx context.Context, transactionID int64) error
 	GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]Transaction, error)
 	GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber string) ([]Transaction, error)
 }
@@ -44,7 +44,7 @@ func (s *TransactionService) CreateTransaction(ctx context.Context, transaction 
 	return nil
 }
 
-func (s *TransactionService) GetTransactionByTransactionID(ctx context.Context, transactionID string) (*Transaction, error) {
+func (s *TransactionService) GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*Transaction, error) {
 	transaction, err := s.Store.GetTransactionByTransactionID(ctx, transactionID)
 	if err != nil {
 		log.Printf("Error getting transaction by ID: %v", err)
@@ -61,7 +61,7 @@ func (s *TransactionService) UpdateTransaction(ctx context.Context, transaction 
 	return nil
 }
 
-func (s *TransactionService) DeleteTransactionByID(ctx context.Context, transactionID string) error {
+func (s *TransactionService) DeleteTransactionByID(ctx context.Context, transactionID int64) error {
 	if err := s.Store.DeleteTransactionByID(ctx, transactionID); err != nil {
 		log.Printf("Error deleting transaction by ID: %v", err)
 		return err

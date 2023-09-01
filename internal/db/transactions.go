@@ -2,6 +2,7 @@ package db
 
 import (
 	"PayWalletEngine/internal/accounts"
+	"PayWalletEngine/internal/transactions"
 	"context"
 	"gorm.io/gorm"
 )
@@ -18,37 +19,78 @@ type Transaction struct {
 	Description   string           `gorm:"type:varchar(255)"`
 }
 
-func (d *Database) CreateTransaction(ctx context.Context, transaction *Transaction) error {
+func (d *Database) CreateTransaction(ctx context.Context, transaction *transactions.Transaction) error {
 	return d.Client.WithContext(ctx).Create(transaction).Error
+}
+
+func (d *Database) UpdateTransaction(ctx context.Context, transaction *transactions.Transaction) error {
+	return d.Client.WithContext(ctx).Save(transaction).Error
 
 }
 
-func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactionID string) (*Transaction, error) {
+func (d *Database) DeleteTransactionByID(ctx context.Context, transactionID int64) error {
+	return d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).Delete(&Transaction{}).Error
+
+}
+
+func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*transactions.Transaction, error) {
 	var t Transaction
 	err := d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).First(&t).Error
-	return &t, err
+	if err != nil {
+		return nil, err
+	}
+	return &transactions.Transaction{
+		Sender:        t.Sender,
+		Receiver:      t.Receiver,
+		TransactionID: t.TransactionID,
+		Amount:        t.Amount,
+		Currency:      t.Currency,
+		PaymentMethod: t.PaymentMethod,
+		Status:        t.Status,
+		Description:   t.Description,
+	}, nil
 }
 
-// UpdateTransaction updates a transaction in the database.
-func (d *Database) UpdateTransaction(ctx context.Context, transaction *Transaction) error {
-	return d.Client.WithContext(ctx).Save(transaction).Error
+func (d *Database) GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]transactions.Transaction, error) {
+	var t []Transaction
+	err := d.Client.WithContext(ctx).Joins("Sender").Where("sender_account_number = ?", senderAccountNumber).Find(&t).Error
+	if err != nil {
+		return nil, err
+	}
+	var transactionsList []transactions.Transaction
+	for _, transaction := range t {
+		transactionsList = append(transactionsList, transactions.Transaction{
+			Sender:        transaction.Sender,
+			Receiver:      transaction.Receiver,
+			TransactionID: transaction.TransactionID,
+			Amount:        transaction.Amount,
+			Currency:      transaction.Currency,
+			PaymentMethod: transaction.PaymentMethod,
+			Status:        transaction.Status,
+			Description:   transaction.Description,
+		})
+	}
+	return transactionsList, nil
 }
 
-// DeleteTransactionByID deletes a transaction by its TransactionID from the database.
-func (d *Database) DeleteTransactionByID(ctx context.Context, transactionID string) error {
-	return d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).Delete(&Transaction{}).Error
-}
-
-// GetTransactionsBySender fetches all transactions made by a specific sender from the database.
-func (d *Database) GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]Transaction, error) {
-	var transactions []Transaction
-	err := d.Client.WithContext(ctx).Joins("Sender").Where("accounts.account_number = ?", senderAccountNumber).Find(&transactions).Error
-	return transactions, err
-}
-
-// GetTransactionsByReceiver fetches all transactions received by a specific receiver from the database.
-func (d *Database) GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber string) ([]Transaction, error) {
-	var transactions []Transaction
-	err := d.Client.WithContext(ctx).Joins("Receiver").Where("accounts.account_number = ?", receiverAccountNumber).Find(&transactions).Error
-	return transactions, err
+func (d *Database) GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber string) ([]transactions.Transaction, error) {
+	var t []Transaction
+	err := d.Client.WithContext(ctx).Joins("Receiver").Where("receiver_account_number = ?", receiverAccountNumber).Find(&t).Error
+	if err != nil {
+		return nil, err
+	}
+	var transactionsList []transactions.Transaction
+	for _, transaction := range t {
+		transactionsList = append(transactionsList, transactions.Transaction{
+			Sender:        transaction.Sender,
+			Receiver:      transaction.Receiver,
+			TransactionID: transaction.TransactionID,
+			Amount:        transaction.Amount,
+			Currency:      transaction.Currency,
+			PaymentMethod: transaction.PaymentMethod,
+			Status:        transaction.Status,
+			Description:   transaction.Description,
+		})
+	}
+	return transactionsList, nil
 }
