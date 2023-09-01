@@ -65,17 +65,6 @@ func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
 	return nil
 }
 
-func (d *Database) Ping(ctx context.Context) error {
-	sqlDB, err := d.Client.DB()
-	if err != nil {
-		return err
-	}
-	if err := sqlDB.PingContext(ctx); err != nil {
-		return err
-	}
-	return nil
-}
-
 // ...
 
 func (d *Database) GetByEmail(ctx context.Context, email string) (*users.User, error) {

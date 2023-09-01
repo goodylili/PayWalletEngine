@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -22,4 +23,15 @@ func NewDatabase() (*Database, error) {
 	return &Database{
 		Client: db,
 	}, nil
+}
+
+func (d *Database) Ping(ctx context.Context) error {
+	sqlDB, err := d.Client.DB()
+	if err != nil {
+		return err
+	}
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return err
+	}
+	return nil
 }

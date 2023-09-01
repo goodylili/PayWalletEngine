@@ -4,8 +4,7 @@ import (
 	"PayWalletEngine/internal/accounts"
 	"PayWalletEngine/internal/db"
 	"PayWalletEngine/internal/transactions"
-	transportHTTP "PayWalletEngine/transport/http"
-
+	transportHTTP "PayWalletEngine/internal/transport/http"
 	//transportHTTP "PayWalletEngine/internal/transport/http"
 	"PayWalletEngine/internal/users"
 
@@ -23,11 +22,6 @@ func Run() error {
 		return err
 	}
 
-	//if err := store.Ping(); err != nil {
-	//	return err
-	//}
-	//log.Println("Successfully connected to the store")
-
 	if err := store.MigrateDB(); err != nil {
 		log.Println("failed to setup store migrations")
 		return err
@@ -36,7 +30,7 @@ func Run() error {
 	userService := users.NewService(store)
 	transactionService := transactions.NewTransactionService(store)
 	accountService := accounts.NewAccountService(store)
-	handler := transportHTTP.NewHandler(userService, transactionService accountService)
+	handler := transportHTTP.NewHandler(userService, transactionService, accountService)
 
 	if err := handler.Serve(); err != nil {
 		log.Println("failed to gracefully serve our application")
@@ -44,7 +38,6 @@ func Run() error {
 	}
 
 	return nil
-
 
 }
 func main() {

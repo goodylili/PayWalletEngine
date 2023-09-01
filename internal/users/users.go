@@ -24,7 +24,7 @@ type UserStore interface {
 	GetByEmail(context.Context, string) (*User, error)
 	GetByUsername(context.Context, string) (*User, error)
 	CreateUser(context.Context, *User) error
-	Ping(context.Context) error
+	Ping(ctx context.Context) error
 }
 
 // UserService is the blueprint for the user logic
@@ -33,8 +33,8 @@ type UserService struct {
 }
 
 // NewService creates a new service
-func NewService(store UserStore) *UserService {
-	return &UserService{
+func NewService(store UserStore) UserService {
+	return UserService{
 		Store: store,
 	}
 }
@@ -110,12 +110,6 @@ func (u *UserService) UpdatePassword(ctx context.Context, userID string, newPass
 	return nil
 }
 
-// ReadyCheck - a function that tests we are functionally ready to serve requests
-func (u *UserService) ReadyCheck(ctx context.Context) error {
-	log.Println("Checking readiness")
-	return u.Store.Ping(ctx)
-}
-
 func (u *UserService) GetByEmail(ctx context.Context, email string) (*User, error) {
 	user, err := u.Store.GetByEmail(ctx, email)
 	if err != nil {
@@ -134,4 +128,10 @@ func (u *UserService) GetByUsername(ctx context.Context, username string) (*User
 	}
 
 	return user, nil
+}
+
+// ReadyCheck - a function that tests we are functionally ready to serve requests
+func (u *UserService) ReadyCheck(ctx context.Context) error {
+	log.Println("Checking readiness")
+	return u.Store.Ping(ctx)
 }

@@ -43,7 +43,7 @@ func NewHandler(users users.UserService, transactions transactions.TransactionSe
 
 	h.mapRoutes()
 
-	// h.Router.Use(JSONMiddleware)
+	//h.Router.Use(JSONMiddleware)
 	//	// we also want to log every incoming request
 	//	h.Router.Use(LoggingMiddleware)
 	//	// We want to timeout all requests that take longer than 15 seconds

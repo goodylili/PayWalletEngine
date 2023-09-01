@@ -33,8 +33,8 @@ type AccountService struct {
 }
 
 // NewAccountService creates a new service
-func NewAccountService(store AccountStore) *AccountService {
-	return &AccountService{
+func NewAccountService(store AccountStore) AccountService {
+	return AccountService{
 		Store: store,
 	}
 }

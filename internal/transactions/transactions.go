@@ -30,8 +30,8 @@ type TransactionService struct {
 	Store TransactionStore
 }
 
-func NewTransactionService(store TransactionStore) *TransactionService {
-	return &TransactionService{
+func NewTransactionService(store TransactionStore) TransactionService {
+	return TransactionService{
 		Store: store,
 	}
 }
