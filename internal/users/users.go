@@ -10,11 +10,11 @@ import (
 // User -  a representation of the users of the wallet engine
 type User struct {
 	gorm.Model
-	UserID   int     `json:"userID"`
-	Username string  `json:"username"` // username for the user
-	Email    string  `json:"email"`    // email address for the user
-	Password string  `json:"password"` // hashed password for the user
-	Balance  float64 `json:"balance"`  // current balance for the user's wallet
+	UserID         int     `json:"userID"`
+	Username       string  `json:"username"` // username for the user
+	Email          string  `json:"email"`    // email address for the user
+	HashedPassword string  `json:"password"` // hashed password for the user
+	Balance        float64 `json:"balance"`  // current balance for the user's wallet
 }
 
 type UserStore interface {
@@ -50,12 +50,12 @@ func (u *UserService) GetUser(ctx context.Context, userID string) (User, error) 
 }
 
 func (u *UserService) CreateUser(ctx context.Context, user *User) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.HashedPassword), bcrypt.DefaultCost)
 	if err != nil {
 		log.Printf("Error hashing password: %v", err)
 		return err
 	}
-	user.Password = string(hashedPassword)
+	user.HashedPassword = string(hashedPassword)
 
 	if err := u.Store.CreateUser(ctx, user); err != nil {
 		log.Printf("Error creating user: %v", err)
@@ -99,7 +99,7 @@ func (u *UserService) UpdatePassword(ctx context.Context, userID string, newPass
 	}
 
 	// Update the password
-	user.Password = string(hashedPassword)
+	user.HashedPassword = string(hashedPassword)
 
 	// Update the user in the store
 	if err := u.Store.UpdateUser(ctx, user); err != nil {

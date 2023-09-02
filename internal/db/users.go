@@ -8,11 +8,11 @@ import (
 
 type User struct {
 	gorm.Model
-	UserID   int     `gorm:"unique;not null"` // username for the user
-	Username string  `gorm:"unique;not null"` // username for the user
-	Email    string  `gorm:"unique;not null"` // email address for the user
-	Password string  `gorm:"not null"`        // hashed password for the user
-	Balance  float64 `gorm:"default:0"`       // current balance for the user's wallet
+	UserID         int     `gorm:"unique;not null"` // username for the user
+	Username       string  `gorm:"unique;not null"` // username for the user
+	Email          string  `gorm:"unique;not null"` // email address for the user
+	HashedPassword string  `gorm:"not null"`        // hashed password for the user
+	Balance        float64 `gorm:"default:0"`       // current balance for the user's wallet
 }
 
 func (d *Database) UpdateUser(ctx context.Context, user users.User) error {
@@ -22,11 +22,11 @@ func (d *Database) UpdateUser(ctx context.Context, user users.User) error {
 		return err
 	}
 	dbUser = User{
-		UserID:   user.UserID,
-		Username: user.Username,
-		Email:    user.Email,
-		Password: user.Password,
-		Balance:  user.Balance,
+		UserID:         user.UserID,
+		Username:       user.Username,
+		Email:          user.Email,
+		HashedPassword: user.HashedPassword,
+		Balance:        user.Balance,
 	}
 	if err := d.Client.WithContext(ctx).Save(&dbUser).Error; err != nil {
 		return err
@@ -48,21 +48,21 @@ func (d *Database) GetUser(ctx context.Context, s string) (users.User, error) {
 		return users.User{}, err
 	}
 	return users.User{
-		UserID:   dbUser.UserID,
-		Username: dbUser.Username,
-		Email:    dbUser.Email,
-		Password: dbUser.Password,
-		Balance:  dbUser.Balance,
+		UserID:         dbUser.UserID,
+		Username:       dbUser.Username,
+		Email:          dbUser.Email,
+		HashedPassword: dbUser.HashedPassword,
+		Balance:        dbUser.Balance,
 	}, nil
 }
 
 func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
 	dbUser := User{
-		UserID:   user.UserID,
-		Username: user.Username,
-		Email:    user.Email,
-		Password: user.Password,
-		Balance:  user.Balance,
+		UserID:         user.UserID,
+		Username:       user.Username,
+		Email:          user.Email,
+		HashedPassword: user.HashedPassword,
+		Balance:        user.Balance,
 	}
 	if err := d.Client.WithContext(ctx).Create(&dbUser).Error; err != nil {
 		return err
@@ -77,11 +77,11 @@ func (d *Database) GetByEmail(ctx context.Context, email string) (*users.User, e
 		return nil, err
 	}
 	return &users.User{
-		UserID:   dbUser.UserID,
-		Username: dbUser.Username,
-		Email:    dbUser.Email,
-		Password: dbUser.Password,
-		Balance:  dbUser.Balance,
+		UserID:         dbUser.UserID,
+		Username:       dbUser.Username,
+		Email:          dbUser.Email,
+		HashedPassword: dbUser.HashedPassword,
+		Balance:        dbUser.Balance,
 	}, nil
 }
 
@@ -92,10 +92,10 @@ func (d *Database) GetByUsername(ctx context.Context, username string) (*users.U
 		return nil, err
 	}
 	return &users.User{
-		UserID:   dbUser.UserID,
-		Username: dbUser.Username,
-		Email:    dbUser.Email,
-		Password: dbUser.Password,
-		Balance:  dbUser.Balance,
+		UserID:         dbUser.UserID,
+		Username:       dbUser.Username,
+		Email:          dbUser.Email,
+		HashedPassword: dbUser.HashedPassword,
+		Balance:        dbUser.Balance,
 	}, nil
 }

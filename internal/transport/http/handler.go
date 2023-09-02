@@ -42,11 +42,12 @@ func NewHandler(users users.UserService, transactions transactions.TransactionSe
 
 	h.mapRoutes()
 
-	//h.Router.Use(JSONMiddleware)
-	//	// we also want to log every incoming request
-	//	h.Router.Use(LoggingMiddleware)
-	//	// We want to timeout all requests that take longer than 15 seconds
-	//	h.Router.Use(TimeoutMiddleware)
+	// set the content type to application/json
+	h.Router.Use(JSONMiddleware)
+	//  log every incoming request
+	h.Router.Use(LoggingMiddleware)
+	// timeout all requests that take longer than 15 seconds
+	h.Router.Use(TimeoutMiddleware)
 
 	h.Server = &http.Server{
 		Addr:         "0.0.0.0:8080", // Good practice to set timeouts to avoid Slow-loris attacks.
@@ -68,29 +69,29 @@ func (h *Handler) mapRoutes() {
 
 	// Users Routes
 	h.Router.HandleFunc("/api/v1/user", h.CreateUser).Methods("POST")
-	h.Router.HandleFunc("/api/v1/users/{id}", h.GetUser).Methods("GET")
-	h.Router.HandleFunc("/api/v1/users/email/{email}", h.GetByEmail).Methods("GET")
-	h.Router.HandleFunc("/api/v1/users/username/{username}", h.GetByUsername).Methods("GET")
-	h.Router.HandleFunc("/api/v1/users/{id}", h.UpdateUser).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/users/{id}", h.DeleteUser).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/users/{id}", JWTAuth(h.GetUser)).Methods("GET")
+	h.Router.HandleFunc("/api/v1/users/email/{email}", JWTAuth(h.GetByEmail)).Methods("GET")
+	h.Router.HandleFunc("/api/v1/users/username/{username}", JWTAuth(h.GetByUsername)).Methods("GET")
+	h.Router.HandleFunc("/api/v1/users/{id}", JWTAuth(h.UpdateUser)).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/users/{id}", JWTAuth(h.DeleteUser)).Methods("DELETE")
 	h.Router.HandleFunc("/api/v1/users/ping", h.Ping).Methods("GET")
 
 	// Account Routes
-	h.Router.HandleFunc("/api/v1/account", h.CreateAccount).Methods("POST")
-	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetAccountByID).Methods("GET")
-	h.Router.HandleFunc("/api/v1/accounts/number/{number}", h.GetAccountByNumber).Methods("GET")
-	h.Router.HandleFunc("/api/v1/accounts/{id}", h.UpdateAccountDetails).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/accounts/balance/{account_number}/{amount}", h.UpdateAccountBalance).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/accounts/{id}", h.DeleteAccountDetails).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/account", JWTAuth(h.CreateAccount)).Methods("POST")
+	h.Router.HandleFunc("/api/v1/accounts/{id}", JWTAuth(h.GetAccountByID)).Methods("GET")
+	h.Router.HandleFunc("/api/v1/accounts/number/{number}", JWTAuth(h.GetAccountByNumber)).Methods("GET")
+	h.Router.HandleFunc("/api/v1/accounts/{id}", JWTAuth(h.UpdateAccountDetails)).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/accounts/balance/{account_number}/{amount}", JWTAuth(h.UpdateAccountBalance)).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/accounts/{id}", JWTAuth(h.DeleteAccountDetails)).Methods("DELETE")
 
 	// Transactions Routes
-	h.Router.HandleFunc("/api/v1/transaction", h.CreateTransaction).Methods("POST")
-	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}", h.GetTransactionByTransactionID).Methods("GET")
-	h.Router.HandleFunc("/api/v1/transactions/sender/{accountNumber}", h.GetTransactionsBySender).Methods("GET")
-	h.Router.HandleFunc("/api/v1/transactions/receiver/{accountNumber}", h.GetTransactionsByReceiver).Methods("GET")
-	h.Router.HandleFunc("/api/v1/transaction/", h.UpdateTransaction).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/transaction/{transaction_id}", h.DeleteTransactionByID).Methods("DELETE")
-	h.Router.HandleFunc("/api/v1/transactions/{transaction_reference}", h.GetTransactionByReference).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transaction", JWTAuth(h.CreateTransaction)).Methods("POST")
+	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}", JWTAuth(h.GetTransactionByTransactionID)).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/sender/{accountNumber}", JWTAuth(h.GetTransactionsBySender)).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/receiver/{accountNumber}", JWTAuth(h.GetTransactionsByReceiver)).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transaction/", JWTAuth(h.UpdateTransaction)).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/transaction/{transaction_id}", JWTAuth(h.DeleteTransactionByID)).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/transactions/{transaction_reference}", JWTAuth(h.GetTransactionByReference)).Methods("GET")
 
 }
 
