@@ -14,7 +14,7 @@ This is a basic MVP version of a bank account system implemented in Go using the
 - [Usage](#usage)
 - [Testing](#testing)
 - [API Documentation](docs/API.md)
-- [Built With](#built-with)
+- [Technologies and Tools](#technologies-and-tools)
 - [Contributing](#contributing)
 - [License](#license)
 
