@@ -67,8 +67,8 @@ func (s *AccountService) UpdateAccountDetails(ctx context.Context, account Accou
 	return nil
 }
 
-func (s *AccountService) DeleteAccountDetails(ctx context.Context, accountID int) error {
-	if err := s.Store.DeleteAccountDetails(ctx, int64(accountID)); err != nil {
+func (s *AccountService) DeleteAccountDetails(ctx context.Context, accountID int64) error {
+	if err := s.Store.DeleteAccountDetails(ctx, accountID); err != nil {
 		log.Printf("Error deleting account with ID %s: %v", accountID, err)
 		return err
 	}

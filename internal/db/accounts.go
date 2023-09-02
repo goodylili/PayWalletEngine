@@ -62,6 +62,11 @@ func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account)
 
 // UpdateAccountDetails updates an account in the database.
 func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Account) error {
+	var a Account
+	err := d.Client.WithContext(ctx).Where("account_id = ?", account.AccountID).First(&a).Error
+	if err != nil {
+		return err
+	}
 	dbAccount := Account{
 		AccountOwnerID: account.AccountOwner.UserID,
 		AccountID:      account.AccountID,
@@ -74,11 +79,6 @@ func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Ac
 	return d.Client.WithContext(ctx).Save(&dbAccount).Error
 }
 
-// DeleteAccountDetails deletes an account by its AccountID from the database.
-func (d *Database) DeleteAccountDetails(ctx context.Context, accountID int64) error {
-	return d.Client.WithContext(ctx).Where("account_id = ?", accountID).Delete(&Account{}).Error
-}
-
 // UpdateAccountBalance updates the balance of an account in the database.
 func (d *Database) UpdateAccountBalance(ctx context.Context, accountID string, newBalance float64) error {
 	var a Account
@@ -87,6 +87,11 @@ func (d *Database) UpdateAccountBalance(ctx context.Context, accountID string, n
 		return err
 	}
 	return d.Client.WithContext(ctx).Model(&Account{}).Where("account_id = ?", accountID).Update("balance", newBalance).Error
+}
+
+// DeleteAccountDetails deletes an account by its AccountID from the database.
+func (d *Database) DeleteAccountDetails(ctx context.Context, accountID int64) error {
+	return d.Client.WithContext(ctx).Where("account_id = ?", accountID).Delete(&Account{}).Error
 }
 
 func (d *Database) GetAccountByID(ctx context.Context, s int64) (accounts.Account, error) {

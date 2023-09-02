@@ -16,7 +16,12 @@ type User struct {
 }
 
 func (d *Database) UpdateUser(ctx context.Context, user users.User) error {
-	dbUser := User{
+	var dbUser User
+	// Check if user exists
+	if err := d.Client.WithContext(ctx).Where("user_id = ?", user.UserID).First(&dbUser).Error; err != nil {
+		return err
+	}
+	dbUser = User{
 		UserID:   user.UserID,
 		Username: user.Username,
 		Email:    user.Email,
@@ -64,8 +69,6 @@ func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
 	}
 	return nil
 }
-
-// ...
 
 func (d *Database) GetByEmail(ctx context.Context, email string) (*users.User, error) {
 	var dbUser User

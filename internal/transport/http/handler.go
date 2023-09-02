@@ -80,7 +80,7 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetAccountByID).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/number/{number}", h.GetAccountByNumber).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.UpdateAccountDetails).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/accounts/balance/{number}/{amount}", h.UpdateAccountBalance).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/accounts/balance/{account_number}/{amount}", h.UpdateAccountBalance).Methods("PUT")
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.DeleteAccountDetails).Methods("DELETE")
 
 	// Transactions Routes
