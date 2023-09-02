@@ -11,12 +11,13 @@ type Transaction struct {
 	gorm.Model
 	Sender        accounts.Account `gorm:"foreignkey:AccountNumber"`
 	Receiver      accounts.Account `gorm:"foreignkey:AccountNumber"`
-	TransactionID string           `gorm:"type:varchar(100);unique_index"`
+	TransactionID int64            `gorm:"type:varchar(100);unique_index"`
 	Amount        float64          `gorm:"type:decimal(10,2);not null"`
 	Currency      string           `gorm:"type:varchar(10);not null"`
 	PaymentMethod string           `gorm:"type:varchar(50);not null"`
 	Status        string           `gorm:"type:varchar(50);not null"`
 	Description   string           `gorm:"type:varchar(255)"`
+	Reference     int64            `gorm:"type:varchar(100);unique_index"`
 }
 
 func (d *Database) CreateTransaction(ctx context.Context, transaction *transactions.Transaction) error {
@@ -24,8 +25,14 @@ func (d *Database) CreateTransaction(ctx context.Context, transaction *transacti
 }
 
 func (d *Database) UpdateTransaction(ctx context.Context, transaction *transactions.Transaction) error {
-	return d.Client.WithContext(ctx).Save(transaction).Error
+	// Check if the transaction exists
+	var existingTransaction transactions.Transaction
+	if err := d.Client.WithContext(ctx).Where("id = ?", transaction.TransactionID).First(&existingTransaction).Error; err != nil {
+		return err
+	}
 
+	// Update the transaction
+	return d.Client.WithContext(ctx).Save(transaction).Error
 }
 
 func (d *Database) DeleteTransactionByID(ctx context.Context, transactionID int64) error {
@@ -33,9 +40,9 @@ func (d *Database) DeleteTransactionByID(ctx context.Context, transactionID int6
 
 }
 
-func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*transactions.Transaction, error) {
+func (d *Database) GetTransactionByReference(ctx context.Context, reference int64) (*transactions.Transaction, error) {
 	var t Transaction
-	err := d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).First(&t).Error
+	err := d.Client.WithContext(ctx).Where("reference = ?", reference).First(&t).Error
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +55,26 @@ func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactio
 		PaymentMethod: t.PaymentMethod,
 		Status:        t.Status,
 		Description:   t.Description,
+		Reference:     t.Reference,
+	}, nil
+}
+
+func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*transactions.Transaction, error) {
+	var t Transaction
+	err := d.Client.WithContext(ctx).Where("reference = ?", transactionID).First(&t).Error
+	if err != nil {
+		return nil, err
+	}
+	return &transactions.Transaction{
+		Sender:        t.Sender,
+		Receiver:      t.Receiver,
+		TransactionID: t.TransactionID,
+		Amount:        t.Amount,
+		Currency:      t.Currency,
+		PaymentMethod: t.PaymentMethod,
+		Status:        t.Status,
+		Description:   t.Description,
+		Reference:     t.Reference,
 	}, nil
 }
 
@@ -68,6 +95,7 @@ func (d *Database) GetTransactionsBySender(ctx context.Context, senderAccountNum
 			PaymentMethod: transaction.PaymentMethod,
 			Status:        transaction.Status,
 			Description:   transaction.Description,
+			Reference:     transaction.Reference,
 		})
 	}
 	return transactionsList, nil
@@ -90,6 +118,7 @@ func (d *Database) GetTransactionsByReceiver(ctx context.Context, receiverAccoun
 			PaymentMethod: transaction.PaymentMethod,
 			Status:        transaction.Status,
 			Description:   transaction.Description,
+			Reference:     transaction.Reference,
 		})
 	}
 	return transactionsList, nil

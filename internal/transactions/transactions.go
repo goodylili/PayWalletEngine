@@ -9,12 +9,13 @@ import (
 type Transaction struct {
 	Sender        accounts.Account `json:"sender"`
 	Receiver      accounts.Account `json:"receiver"`
-	TransactionID string           `json:"transaction_id"`
+	TransactionID int64            `json:"transaction_id"`
 	Amount        float64          `json:"amount"`
 	Currency      string           `json:"currency"`
 	PaymentMethod string           `json:"payment_method"`
 	Status        string           `json:"status"`
 	Description   string           `json:"description"`
+	Reference     int64            `json:"reference"`
 }
 
 type TransactionStore interface {
@@ -24,6 +25,7 @@ type TransactionStore interface {
 	DeleteTransactionByID(ctx context.Context, transactionID int64) error
 	GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]Transaction, error)
 	GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber string) ([]Transaction, error)
+	GetTransactionByReference(ctx context.Context, reference int64) (*Transaction, error)
 }
 
 type TransactionService struct {
@@ -48,6 +50,15 @@ func (s *TransactionService) GetTransactionByTransactionID(ctx context.Context, 
 	transaction, err := s.Store.GetTransactionByTransactionID(ctx, transactionID)
 	if err != nil {
 		log.Printf("Error getting transaction by ID: %v", err)
+		return nil, err
+	}
+	return transaction, nil
+}
+
+func (s *TransactionService) GetTransactionByReference(ctx context.Context, reference int64) (*Transaction, error) {
+	transaction, err := s.Store.GetTransactionByReference(ctx, reference)
+	if err != nil {
+		log.Printf("Error getting transaction by reference: %v", err)
 		return nil, err
 	}
 	return transaction, nil

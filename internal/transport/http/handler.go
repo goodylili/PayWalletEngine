@@ -6,14 +6,13 @@ import (
 	"PayWalletEngine/internal/users"
 	"context"
 	"encoding/json"
+	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
 )
 
 // Handler - stores pointer to our comments service
@@ -86,11 +85,12 @@ func (h *Handler) mapRoutes() {
 
 	// Transactions Routes
 	h.Router.HandleFunc("/api/v1/transaction", h.CreateTransaction).Methods("POST")
-	h.Router.HandleFunc("/api/v1/transactions/{id}", h.GetTransactionByTransactionID).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}", h.GetTransactionByTransactionID).Methods("GET")
 	h.Router.HandleFunc("/api/v1/transactions/sender/{accountNumber}", h.GetTransactionsBySender).Methods("GET")
 	h.Router.HandleFunc("/api/v1/transactions/receiver/{accountNumber}", h.GetTransactionsByReceiver).Methods("GET")
-	h.Router.HandleFunc("/api/v1/transaction/{id}", h.UpdateTransaction).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/transaction/{id}", h.DeleteTransactionByID).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/transaction/", h.UpdateTransaction).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/transaction/{transaction_id}", h.DeleteTransactionByID).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/transactions/{transaction_reference}", h.GetTransactionByReference).Methods("GET")
 
 }
 
