@@ -28,7 +28,7 @@ These instructions will get you a copy of the project up and running on your loc
 - Go (version 1.15 or later)
 - Make
 
-### Installation
+### Installation and Setup
 
 1. Clone the repository
 
