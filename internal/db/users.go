@@ -21,6 +21,7 @@ func (d *Database) UpdateUser(ctx context.Context, user users.User) error {
 	if err := d.Client.WithContext(ctx).Where("user_id = ?", user.UserID).First(&dbUser).Error; err != nil {
 		return err
 	}
+
 	dbUser = User{
 		UserID:         user.UserID,
 		Username:       user.Username,
@@ -28,23 +29,27 @@ func (d *Database) UpdateUser(ctx context.Context, user users.User) error {
 		HashedPassword: user.HashedPassword,
 		Balance:        user.Balance,
 	}
+
+	// if the user exists, update the database with the user's new details
 	if err := d.Client.WithContext(ctx).Save(&dbUser).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *Database) DeleteUser(ctx context.Context, s string) error {
+// DeleteUserByID deletes a user from the database by the UserID by checking if a user with the ID exists before Deleting
+func (d *Database) DeleteUserByID(ctx context.Context, userID int64) error {
 	user := User{}
-	if err := d.Client.WithContext(ctx).Where("username = ?", s).Delete(&user).Error; err != nil {
+	if err := d.Client.WithContext(ctx).Where("UserID = ?", userID).Delete(&user).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (d *Database) GetUser(ctx context.Context, s string) (users.User, error) {
+// GetUserByID returns the user with a specified userID
+func (d *Database) GetUserByID(ctx context.Context, userID int64) (users.User, error) {
 	dbUser := User{}
-	if err := d.Client.WithContext(ctx).Where("username = ?", s).First(&dbUser).Error; err != nil {
+	if err := d.Client.WithContext(ctx).Where("UserID = ?", userID).First(&dbUser).Error; err != nil {
 		return users.User{}, err
 	}
 	return users.User{
@@ -56,6 +61,7 @@ func (d *Database) GetUser(ctx context.Context, s string) (users.User, error) {
 	}, nil
 }
 
+// CreateUser creates a new user in the database
 func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
 	dbUser := User{
 		UserID:         user.UserID,
