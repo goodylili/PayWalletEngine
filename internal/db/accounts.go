@@ -2,22 +2,12 @@ package db
 
 import (
 	"PayWalletEngine/internal/accounts"
-	"PayWalletEngine/internal/users"
 	"context"
-	crypto "crypto/rand"
-	"crypto/sha256"
-	"fmt"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
-	"math/big"
-	"math/rand"
-	"time"
 )
 
 type Account struct {
-	gorm.Model
-	AccountOwnerID int     `gorm:"foreignkey:UserID"`
-	AccountID      string  `gorm:"type:varchar(100);uniqueIndex"`
+	AccountOwnerID uint    `gorm:"primaryKey;foreignKey:AccountOwnerID"` // Correct foreign key reference
 	AccountNumber  string  `gorm:"type:varchar(100);uniqueIndex"`
 	AccountType    string  `gorm:"type:varchar(50)"`
 	Balance        float64 `gorm:"type:decimal(10,2)"`
@@ -25,32 +15,16 @@ type Account struct {
 	AccountStatus  string  `gorm:"type:varchar(50)"`
 }
 
-// GenerateAccountNumber generates a unique 10-digit account number
-func GenerateAccountNumber() (string, error) {
-	rand.Seed(time.Now().UnixNano())
-	randomInt := rand.Int63n(1e10)
-	uid, err := uuid.NewRandomFromReader(crypto.Reader)
-	if err != nil {
-		return "", err
-	}
-	hash := sha256.Sum256([]byte(fmt.Sprintf("%d%s", randomInt, uid.String())))
-	hashInt := big.NewInt(0)
-	hashInt.SetBytes(hash[:])
-	accountNumber := hashInt.Mod(hashInt, big.NewInt(1e10)).Int64()
-	return fmt.Sprintf("%010d", accountNumber), nil
-}
-
 // CreateAccount creates a new account in the database.
 func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account) error {
-	accountNumber, err := GenerateAccountNumber()
+	accountNumber, err := accounts.GenerateAccountNumber()
 	if err != nil {
 		return err
 	}
 	account.AccountNumber = accountNumber
 	account.AccountID = uuid.New().String()
 	dbAccount := Account{
-		AccountOwnerID: account.AccountOwner.UserID,
-		AccountID:      account.AccountID,
+		AccountOwnerID: account.AccountOwner.ID,
 		AccountNumber:  account.AccountNumber,
 		AccountType:    account.AccountType,
 		Balance:        account.Balance,
@@ -68,8 +42,7 @@ func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Ac
 		return err
 	}
 	dbAccount := Account{
-		AccountOwnerID: account.AccountOwner.UserID,
-		AccountID:      account.AccountID,
+		AccountOwnerID: account.AccountOwner.ID,
 		AccountNumber:  account.AccountNumber,
 		AccountType:    account.AccountType,
 		Balance:        account.Balance,
@@ -101,10 +74,6 @@ func (d *Database) GetAccountByID(ctx context.Context, s int64) (accounts.Accoun
 		return accounts.Account{}, err
 	}
 	return accounts.Account{
-		AccountOwner: users.User{
-			UserID: a.AccountOwnerID,
-		},
-		AccountID:     a.AccountID,
 		AccountNumber: a.AccountNumber,
 		AccountType:   a.AccountType,
 		Balance:       a.Balance,
@@ -120,10 +89,6 @@ func (d *Database) GetAccountByNumber(ctx context.Context, s int64) (accounts.Ac
 		return accounts.Account{}, err
 	}
 	return accounts.Account{
-		AccountOwner: users.User{
-			UserID: a.AccountOwnerID,
-		},
-		AccountID:     a.AccountID,
 		AccountNumber: a.AccountNumber,
 		AccountType:   a.AccountType,
 		Balance:       a.Balance,
