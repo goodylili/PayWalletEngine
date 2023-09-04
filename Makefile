@@ -1,55 +1,32 @@
-# Makefile for Go project using Docker and Docker Compose
+# Makefile for the Golang project
 
-# Project name
-PROJECT_NAME := mygoproject
+# Variables
+BINARY_NAME=server
+PACKAGE=cmd/server
+DOCS_DIR=docs
 
-# Docker Compose file
-DOCKER_COMPOSE_FILE := docker-compose.yml
+.PHONY: all build run test clean docs
 
-# Docker Compose command
-DOCKER_COMPOSE := docker-compose -f $(DOCKER_COMPOSE_FILE)
+# Default target to run when executing 'make'
+all: build
 
-# Go source files
-GO_SRC := $(shell find . -type f -name '*.go')
-
-# Default target
-.DEFAULT_GOAL := help
-
-# Targets
-.PHONY: build run test lint clean help
-
-# Build Docker image
+# Build the project
 build:
-	@echo "Building Docker image..."
-	$(DOCKER_COMPOSE) build
+	@echo "Building..."
+	go build -o $(BINARY_NAME) ./$(PACKAGE)
 
-# Run Docker container
+# Run the server
 run:
-	@echo "Starting Docker container..."
-	$(DOCKER_COMPOSE) up -d
+	@echo "Running server..."
+	go run ./$(PACKAGE)
 
 # Run tests
-test: $(GO_SRC)
+test:
 	@echo "Running tests..."
-	go test ./...
+	go test -v ./...
 
-# Run lint
-lint: $(GO_SRC)
-	@echo "Running lint..."
-	golangci-lint run ./...
-
-# Stop and remove Docker containers
+# Remove build artifacts
 clean:
-	@echo "Stopping and removing Docker containers..."
-	$(DOCKER_COMPOSE) down
-
-# Display help
-help:
-	@echo "Usage: make [TARGET]"
-	@echo "Targets:"
-	@echo "  build   Build Docker image"
-	@echo "  run     Start Docker container"
-	@echo "  test    Run tests"
-	@echo "  lint    Run lint"
-	@echo "  clean   Stop and remove Docker containers"
-
+	@echo "Cleaning up..."
+	go clean
+	rm $(BINARY_NAME)

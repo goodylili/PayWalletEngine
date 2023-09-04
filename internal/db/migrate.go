@@ -6,9 +6,7 @@ func (d *Database) MigrateDB() error {
 	log.Println("Database Migration in Process...")
 
 	// Use GORM AutoMigrate to migrate all the database schemas.
-	err := d.Client.AutoMigrate(
-	// List of database models here.
-	)
+	err := d.Client.AutoMigrate(User{}, Account{}, Transaction{})
 	if err != nil {
 		return err
 	}
