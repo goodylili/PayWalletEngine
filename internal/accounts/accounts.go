@@ -3,6 +3,7 @@ package accounts
 import (
 	"PayWalletEngine/internal/users"
 	"context"
+	"fmt"
 	"gorm.io/gorm"
 	"log"
 )
@@ -25,6 +26,10 @@ type AccountStore interface {
 	UpdateAccountDetails(context.Context, Account) error
 	UpdateAccountBalance(context.Context, string, float64) error
 	DeleteAccountDetails(context.Context, int64) error
+	ActivateAccount(context.Context, int64) error
+	DeActivateAccount(context.Context, int64) error
+	CreditAccount(context.Context, int64) error
+	DebitAccount(context.Context, int64) error
 }
 
 // AccountService is the blueprint for the account logic
@@ -104,4 +109,71 @@ func (s *AccountService) GetAccountByNumber(ctx context.Context, accountNumber i
 	}
 
 	return account, nil
+}
+
+// ActivateAccount activates an account by setting its status to 'Active'
+func (s *AccountService) ActivateAccount(ctx context.Context, accountID int64) error {
+	account, err := s.Store.GetAccountByID(ctx, accountID)
+	if err != nil {
+		log.Printf("Error fetching account with ID %d: %v", accountID, err)
+		return err
+	}
+	account.AccountStatus = "Active"
+
+	if err := s.Store.UpdateAccountDetails(ctx, account); err != nil {
+		log.Printf("Error activating account with ID %d: %v", accountID, err)
+		return err
+	}
+	return nil
+}
+
+// DeActivateAccount deactivates an account by setting its status to 'Inactive'
+func (s *AccountService) DeActivateAccount(ctx context.Context, accountID int64) error {
+	account, err := s.Store.GetAccountByID(ctx, accountID)
+	if err != nil {
+		log.Printf("Error fetching account with ID %d: %v", accountID, err)
+		return err
+	}
+	account.AccountStatus = "Inactive"
+
+	if err := s.Store.UpdateAccountDetails(ctx, account); err != nil {
+		log.Printf("Error deactivating account with ID %d: %v", accountID, err)
+		return err
+	}
+	return nil
+}
+
+// CreditAccount adds the specified amount to the account balance
+func (s *AccountService) CreditAccount(ctx context.Context, accountID int64, amount float64) error {
+	account, err := s.Store.GetAccountByID(ctx, accountID)
+	if err != nil {
+		log.Printf("Error fetching account with ID %d: %v", accountID, err)
+		return err
+	}
+	account.Balance += amount
+
+	if err := s.Store.UpdateAccountDetails(ctx, account); err != nil {
+		log.Printf("Error crediting account with ID %d: %v", accountID, err)
+		return err
+	}
+	return nil
+}
+
+// DebitAccount subtracts the specified amount from the account balance
+func (s *AccountService) DebitAccount(ctx context.Context, accountID int64, amount float64) error {
+	account, err := s.Store.GetAccountByID(ctx, accountID)
+	if err != nil {
+		log.Printf("Error fetching account with ID %d: %v", accountID, err)
+		return err
+	}
+	if account.Balance < amount {
+		return fmt.Errorf("insufficient funds in account with ID %d", accountID)
+	}
+	account.Balance -= amount
+
+	if err := s.Store.UpdateAccountDetails(ctx, account); err != nil {
+		log.Printf("Error debiting account with ID %d: %v", accountID, err)
+		return err
+	}
+	return nil
 }
