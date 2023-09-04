@@ -73,8 +73,9 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/v1/users/email/{email}", JWTAuth(h.GetByEmail)).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/username/{username}", JWTAuth(h.GetByUsername)).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/{id}", JWTAuth(h.UpdateUser)).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/users/{id}", JWTAuth(h.DeleteUser)).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/users/{id}", JWTAuth(h.DeactivateUser)).Methods("DELETE")
 	h.Router.HandleFunc("/api/v1/users/ping", h.Ping).Methods("GET")
+	h.Router.HandleFunc("/api/v1/users/reset", h.ResetPassword).Methods("PUT")
 
 	// Account Routes
 	h.Router.HandleFunc("/api/v1/account", JWTAuth(h.CreateAccount)).Methods("POST")
