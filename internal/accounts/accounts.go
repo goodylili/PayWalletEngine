@@ -10,13 +10,12 @@ import (
 
 type Account struct {
 	gorm.Model
-	AccountOwner  users.User `json:"account_owner"`
-	AccountID     string     `json:"account_id"`
-	AccountNumber string     `json:"account_number"`
-	AccountType   string     `json:"account_type"`
-	Balance       float64    `json:"balance"`
-	Currency      string     `json:"currency"`
-	AccountStatus string     `json:"account_status"`
+	AccountOwnerID users.User `json:"account_owner"`
+	AccountID      string     `json:"account_id"`
+	AccountNumber  string     `json:"account_number"`
+	AccountType    string     `json:"account_type"`
+	Balance        float64    `json:"balance"`
+	AccountStatus  string     `json:"account_status"`
 }
 
 type AccountStore interface {
@@ -25,9 +24,6 @@ type AccountStore interface {
 	GetAccountByNumber(context.Context, int64) (Account, error)
 	UpdateAccountDetails(context.Context, Account) error
 	UpdateAccountBalance(context.Context, string, float64) error
-	DeleteAccountDetails(context.Context, int64) error
-	ActivateAccount(context.Context, int64) error
-	DeActivateAccount(context.Context, int64) error
 	CreditAccount(context.Context, int64) error
 	DebitAccount(context.Context, int64) error
 }
@@ -43,6 +39,14 @@ func NewAccountService(store AccountStore) AccountService {
 		Store: store,
 	}
 }
+func (s *AccountService) CreateAccount(ctx context.Context, account *Account) error {
+	if err := s.Store.CreateAccount(ctx, account); err != nil {
+		log.Printf("Error creating account: %v", err)
+		return err
+	}
+
+	return nil
+}
 
 func (s *AccountService) GetAccountByID(ctx context.Context, accountID int64) (Account, error) {
 	account, err := s.Store.GetAccountByID(ctx, accountID)
@@ -54,27 +58,9 @@ func (s *AccountService) GetAccountByID(ctx context.Context, accountID int64) (A
 	return account, nil
 }
 
-func (s *AccountService) CreateAccount(ctx context.Context, account *Account) error {
-	if err := s.Store.CreateAccount(ctx, account); err != nil {
-		log.Printf("Error creating account: %v", err)
-		return err
-	}
-
-	return nil
-}
-
 func (s *AccountService) UpdateAccountDetails(ctx context.Context, account Account) error {
 	if err := s.Store.UpdateAccountDetails(ctx, account); err != nil {
 		log.Printf("Error updating account: %v", err)
-		return err
-	}
-
-	return nil
-}
-
-func (s *AccountService) DeleteAccountDetails(ctx context.Context, accountID int64) error {
-	if err := s.Store.DeleteAccountDetails(ctx, accountID); err != nil {
-		log.Printf("Error deleting account with ID %s: %v", accountID, err)
 		return err
 	}
 
