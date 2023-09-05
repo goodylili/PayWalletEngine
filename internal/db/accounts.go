@@ -3,14 +3,14 @@ package db
 import (
 	"PayWalletEngine/internal/accounts"
 	"context"
-	"github.com/google/uuid"
+	"fmt"
 )
 
 type Account struct {
-	AccountOwnerID uint    `gorm:"primaryKey;foreignKey:AccountOwnerID"` // Correct foreign key reference
-	AccountNumber  string  `gorm:"type:varchar(100);uniqueIndex"`
-	AccountType    string  `gorm:"type:varchar(50)"`
-	Balance        float64 `gorm:"type:decimal(10,2)"`
+	ID            uint    `gorm:"primaryKey;foreignKey:ID"` // Correct foreign key reference
+	AccountNumber string  `gorm:"type:varchar(100);uniqueIndex;column:account_number"`
+	AccountType   string  `gorm:"type:varchar(50)"`
+	Balance       float64 `gorm:"type:decimal(10,2)"`
 }
 
 // CreateAccount creates a new account in the database.
@@ -20,69 +20,139 @@ func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account)
 		return err
 	}
 	account.AccountNumber = accountNumber
-	account.AccountID = uuid.New().String()
 	dbAccount := Account{
-		AccountOwnerID: account.AccountOwnerID.ID,
-		AccountNumber:  account.AccountNumber,
-		AccountType:    account.AccountType,
-		Balance:        account.Balance,
+		ID:            account.ID,
+		AccountNumber: account.AccountNumber,
+		AccountType:   account.AccountType,
+		Balance:       account.Balance,
 	}
 	return d.Client.WithContext(ctx).Create(&dbAccount).Error
 }
 
 func (d *Database) GetAccountByID(ctx context.Context, id int64) (accounts.Account, error) {
 	var a Account
-	err := d.Client.WithContext(ctx).Where("account_id = ?", id).First(&a).Error
+	err := d.Client.WithContext(ctx).Where("id = ?", id).First(&a).Error
 	if err != nil {
 		return accounts.Account{}, err
 	}
 	return accounts.Account{
+		ID:            a.ID,
 		AccountNumber: a.AccountNumber,
 		AccountType:   a.AccountType,
 		Balance:       a.Balance,
 	}, nil
 }
 
-// DeleteAccountDetails deletes an account by its AccountID from the database.
-func (d *Database) DeleteAccountDetails(ctx context.Context, accountID int64) error {
-	return d.Client.WithContext(ctx).Where("account_id = ?", accountID).Delete(&Account{}).Error
-}
-
-func (d *Database) GetAccountByNumber(ctx context.Context, s int64) (accounts.Account, error) {
+func (d *Database) GetAccountByNumber(ctx context.Context, accountNumber int64) (accounts.Account, error) {
 	var a Account
-	err := d.Client.WithContext(ctx).Where("account_number = ?", s).First(&a).Error
+	err := d.Client.WithContext(ctx).Where("account_number = ?", accountNumber).First(&a).Error
 	if err != nil {
 		return accounts.Account{}, err
 	}
 	return accounts.Account{
+		ID:            a.ID,
 		AccountNumber: a.AccountNumber,
 		AccountType:   a.AccountType,
 		Balance:       a.Balance,
 	}, nil
 }
 
-// UpdateAccountBalance updates the balance of an account in the database.
-func (d *Database) UpdateAccountBalance(ctx context.Context, accountID string, newBalance float64) error {
+func (d *Database) UpdateAccountBalance(ctx context.Context, accountNumber string, newBalance float64) error {
+
+	// Start a new transaction
+	tx := d.Client.WithContext(ctx).Begin()
 	var a Account
-	err := d.Client.WithContext(ctx).Where("account_id = ?", accountID).First(&a).Error
+	err := tx.Where("account_number = ?", accountNumber).First(&a).Error
 	if err != nil {
+		tx.Rollback() // Rollback transaction on error
 		return err
 	}
-	return d.Client.WithContext(ctx).Model(&Account{}).Where("account_id = ?", accountID).Update("balance", newBalance).Error
+	// Update balance
+	a.Balance = newBalance
+	err = tx.Model(&Account{}).Where("account_number = ?", accountNumber).Update("balance", newBalance).Error
+	if err != nil {
+		tx.Rollback() // Rollback transaction on error
+		return err
+	}
+	tx.Commit() // Commit the transaction
+	return nil
 }
 
-// UpdateAccountDetails updates an account in the database.
 func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Account) error {
+	tx := d.Client.WithContext(ctx).Begin() // Start a new transaction
+
 	var a Account
-	err := d.Client.WithContext(ctx).Where("account_id = ?", account.AccountID).First(&a).Error
+	err := tx.Where("account_id = ?", account.ID).First(&a).Error
 	if err != nil {
+		tx.Rollback() // Rollback transaction on error
 		return err
 	}
-	dbAccount := Account{
-		AccountOwnerID: account.AccountOwnerID.ID,
-		AccountNumber:  account.AccountNumber,
-		AccountType:    account.AccountType,
-		Balance:        account.Balance,
+
+	// Update account details
+	a.AccountNumber = account.AccountNumber
+	a.AccountType = account.AccountType
+	a.Balance = account.Balance
+
+	err = tx.Save(&a).Error
+	if err != nil {
+		tx.Rollback() // Rollback transaction on error
+		return err
 	}
-	return d.Client.WithContext(ctx).Save(&dbAccount).Error
+
+	tx.Commit() // Commit the transaction
+	return nil
+}
+
+// CreditAccount updates the account balance by adding the specified amount using a transaction
+func (d *Database) CreditAccount(ctx context.Context, accountNumber int64, amount float64) error {
+	tx := d.Client.WithContext(ctx).Begin() // Start a new transaction
+
+	var a Account
+	err := tx.Where("account_number = ?", accountNumber).First(&a).Error
+	if err != nil {
+		tx.Rollback() // Rollback transaction on error
+		return err
+	}
+
+	// Credit the account
+	a.Balance += amount
+
+	err = tx.Model(&Account{}).Where("account_number = ?", accountNumber).Update("balance", a.Balance).Error
+	if err != nil {
+		tx.Rollback() // Rollback transaction on error
+		return err
+	}
+
+	tx.Commit() // Commit the transaction
+	return nil
+}
+
+// DebitAccount updates the account balance by subtracting the specified amount using a transaction
+func (d *Database) DebitAccount(ctx context.Context, accountNumber string, amount float64) error {
+	tx := d.Client.WithContext(ctx).Begin() // Start a new transaction
+
+	var a Account
+	err := tx.Where("account_number = ?", accountNumber).First(&a).Error
+	if err != nil {
+		tx.Rollback() // Rollback transaction on error
+		return err
+	}
+
+	// Check if sufficient balance
+	if a.Balance < amount {
+		tx.Rollback() // Rollback transaction on insufficient balance
+		return fmt.Errorf("insufficient funds in account with number %s", accountNumber)
+	}
+
+	// Debit the account
+	a.Balance -= amount
+
+	err = tx.Model(&Account{}).Where("account_number = ?", accountNumber).Update("balance", a.Balance).Error
+	if err != nil {
+		tx.Rollback() // Rollback transaction on error
+		return err
+	}
+
+	tx.Commit() // Commit the transaction
+	return nil
 }

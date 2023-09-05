@@ -15,7 +15,7 @@ type AccountService interface {
 	GetAccountByID(context.Context, int64) (accounts.Account, error)
 	GetAccountByNumber(context.Context, int64) (accounts.Account, error)
 	UpdateAccountDetails(context.Context, accounts.Account) error
-	UpdateAccountBalance(context.Context, string, float64) error
+	UpdateAccountBalance(context.Context, int, float64) error
 	DeleteAccountDetails(context.Context, int64) error
 }
 
@@ -98,22 +98,6 @@ func (h *Handler) UpdateAccountBalance(writer http.ResponseWriter, request *http
 		return
 	}
 	err = h.Accounts.UpdateAccountBalance(request.Context(), accountNumber, amount)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	writer.WriteHeader(http.StatusOK)
-}
-
-// DeleteAccountDetails extracts the id from the URL parameters and then deletes the account with that id from the database using the DeleteAccountDetails method of the AccountService interface. If the account is successfully deleted, it responds with a status code 200 OK.
-func (h *Handler) DeleteAccountDetails(writer http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	id, err := strconv.ParseInt(vars["id"], 10, 64)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = h.Accounts.DeleteAccountDetails(request.Context(), id)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
