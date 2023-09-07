@@ -11,7 +11,6 @@ type Transaction struct {
 	Receiver      accounts.Account `json:"receiver"`
 	TransactionID int64            `json:"transaction_id"`
 	Amount        float64          `json:"amount"`
-	Currency      string           `json:"currency"`
 	PaymentMethod string           `json:"payment_method"`
 	Status        string           `json:"status"`
 	Description   string           `json:"description"`
@@ -19,10 +18,7 @@ type Transaction struct {
 }
 
 type TransactionStore interface {
-	CreateTransaction(ctx context.Context, transaction *Transaction) error
 	GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*Transaction, error)
-	UpdateTransaction(ctx context.Context, transaction *Transaction) error
-	DeleteTransactionByID(ctx context.Context, transactionID int64) error
 	GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]Transaction, error)
 	GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber string) ([]Transaction, error)
 	GetTransactionByReference(ctx context.Context, reference int64) (*Transaction, error)
@@ -36,14 +32,6 @@ func NewTransactionService(store TransactionStore) TransactionService {
 	return TransactionService{
 		Store: store,
 	}
-}
-
-func (s *TransactionService) CreateTransaction(ctx context.Context, transaction *Transaction) error {
-	if err := s.Store.CreateTransaction(ctx, transaction); err != nil {
-		log.Printf("Error creating transaction: %v", err)
-		return err
-	}
-	return nil
 }
 
 func (s *TransactionService) GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*Transaction, error) {
@@ -62,22 +50,6 @@ func (s *TransactionService) GetTransactionByReference(ctx context.Context, refe
 		return nil, err
 	}
 	return transaction, nil
-}
-
-func (s *TransactionService) UpdateTransaction(ctx context.Context, transaction *Transaction) error {
-	if err := s.Store.UpdateTransaction(ctx, transaction); err != nil {
-		log.Printf("Error updating transaction: %v", err)
-		return err
-	}
-	return nil
-}
-
-func (s *TransactionService) DeleteTransactionByID(ctx context.Context, transactionID int64) error {
-	if err := s.Store.DeleteTransactionByID(ctx, transactionID); err != nil {
-		log.Printf("Error deleting transaction by ID: %v", err)
-		return err
-	}
-	return nil
 }
 
 func (s *TransactionService) GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]Transaction, error) {

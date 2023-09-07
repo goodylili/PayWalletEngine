@@ -15,8 +15,6 @@ type AccountService interface {
 	GetAccountByID(context.Context, int64) (accounts.Account, error)
 	GetAccountByNumber(context.Context, int64) (accounts.Account, error)
 	UpdateAccountDetails(context.Context, accounts.Account) error
-	UpdateAccountBalance(context.Context, int, float64) error
-	DeleteAccountDetails(context.Context, int64) error
 }
 
 // CreateAccount decodes an Account object from the HTTP request body and then tries to create a new account in the database using the CreateAccount method of the AccountService interface. If the account is successfully created, it encodes and sends the created account as a response.
@@ -79,25 +77,6 @@ func (h *Handler) UpdateAccountDetails(writer http.ResponseWriter, request *http
 		return
 	}
 	err := h.Accounts.UpdateAccountDetails(request.Context(), acct)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	writer.WriteHeader(http.StatusOK)
-}
-
-// UpdateAccountBalance extracts the number and amount from the URL parameters and then updates the balance of the account with that number in the database using the UpdateAccountBalance method of the AccountService interface. If the balance is successfully updated, it responds with a status code 200 OK.
-func (h *Handler) UpdateAccountBalance(writer http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	stringAccountNumber := vars["account_number"]
-	stringAmount := vars["amount"]
-	amount, err := strconv.ParseFloat(stringAmount, 64)
-	accountNumber, err := strconv.ParseInt(stringAccountNumber, 10, 64)
-	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
-		return
-	}
-	err = h.Accounts.UpdateAccountBalance(request.Context(), accountNumber, amount)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return

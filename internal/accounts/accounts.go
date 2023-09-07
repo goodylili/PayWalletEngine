@@ -19,9 +19,6 @@ type AccountStore interface {
 	GetAccountByID(context.Context, int64) (Account, error)
 	GetAccountByNumber(context.Context, int64) (Account, error)
 	UpdateAccountDetails(context.Context, Account) error
-	UpdateAccountBalance(context.Context, int64, float64) error
-	CreditAccount(context.Context, int64, float64) error
-	DebitAccount(context.Context, int64, float64) error
 }
 
 // AccountService is the blueprint for the account logic
@@ -70,35 +67,5 @@ func (s *AccountService) UpdateAccountDetails(ctx context.Context, account Accou
 		log.Printf("Error updating account: %v", err)
 		return err
 	}
-
 	return nil
-}
-
-func (s *AccountService) UpdateAccountBalance(ctx context.Context, accountNumber int64, newBalance float64) error {
-	// Update the account balance using the Store's method
-	if err := s.Store.UpdateAccountBalance(ctx, accountNumber, newBalance); err != nil {
-		log.Printf("Error updating balance for account with number %s: %v", accountNumber, err)
-		return err
-	}
-
-	return nil
-}
-
-func (s *AccountService) CreditAccount(ctx context.Context, accountNumber int64, amount float64) error {
-	// Credit the account using the Store's method
-	if err := s.Store.CreditAccount(ctx, accountNumber, amount); err != nil {
-		log.Printf("Error crediting account with number %s: %v", accountNumber, err)
-		return err
-	}
-	return nil
-}
-
-func (s *AccountService) DebitAccount(ctx context.Context, accountNumber int64, amount float64) error {
-	// Debit the account using the Store's method
-	if err := s.Store.DebitAccount(ctx, accountNumber, amount); err != nil {
-		log.Printf("Error debiting account with number %s: %v", accountNumber, err)
-		return err
-	}
-	return nil
-
 }

@@ -11,33 +11,12 @@ type Transaction struct {
 	gorm.Model
 	Sender        accounts.Account `gorm:"foreignkey:AccountNumber"`
 	Receiver      accounts.Account `gorm:"foreignkey:AccountNumber"`
-	TransactionID int64            `gorm:"type:varchar(100);unique_index"`
 	Amount        float64          `gorm:"type:decimal(10,2);not null"`
-	Currency      string           `gorm:"type:varchar(10);not null"`
 	PaymentMethod string           `gorm:"type:varchar(50);not null"`
 	Status        string           `gorm:"type:varchar(50);not null"`
 	Description   string           `gorm:"type:varchar(255)"`
+	TransactionID int64            `gorm:"type:varchar(100);unique_index"`
 	Reference     int64            `gorm:"type:varchar(100);unique_index"`
-}
-
-func (d *Database) CreateTransaction(ctx context.Context, transaction *transactions.Transaction) error {
-	return d.Client.WithContext(ctx).Create(transaction).Error
-}
-
-func (d *Database) UpdateTransaction(ctx context.Context, transaction *transactions.Transaction) error {
-	// Check if the transaction exists
-	var existingTransaction transactions.Transaction
-	if err := d.Client.WithContext(ctx).Where("id = ?", transaction.TransactionID).First(&existingTransaction).Error; err != nil {
-		return err
-	}
-
-	// Update the transaction
-	return d.Client.WithContext(ctx).Save(transaction).Error
-}
-
-func (d *Database) DeleteTransactionByID(ctx context.Context, transactionID int64) error {
-	return d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).Delete(&Transaction{}).Error
-
 }
 
 func (d *Database) GetTransactionByReference(ctx context.Context, reference int64) (*transactions.Transaction, error) {
@@ -51,7 +30,6 @@ func (d *Database) GetTransactionByReference(ctx context.Context, reference int6
 		Receiver:      t.Receiver,
 		TransactionID: t.TransactionID,
 		Amount:        t.Amount,
-		Currency:      t.Currency,
 		PaymentMethod: t.PaymentMethod,
 		Status:        t.Status,
 		Description:   t.Description,
@@ -70,7 +48,6 @@ func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactio
 		Receiver:      t.Receiver,
 		TransactionID: t.TransactionID,
 		Amount:        t.Amount,
-		Currency:      t.Currency,
 		PaymentMethod: t.PaymentMethod,
 		Status:        t.Status,
 		Description:   t.Description,
@@ -91,7 +68,6 @@ func (d *Database) GetTransactionsBySender(ctx context.Context, senderAccountNum
 			Receiver:      transaction.Receiver,
 			TransactionID: transaction.TransactionID,
 			Amount:        transaction.Amount,
-			Currency:      transaction.Currency,
 			PaymentMethod: transaction.PaymentMethod,
 			Status:        transaction.Status,
 			Description:   transaction.Description,
@@ -114,7 +90,6 @@ func (d *Database) GetTransactionsByReceiver(ctx context.Context, receiverAccoun
 			Receiver:      transaction.Receiver,
 			TransactionID: transaction.TransactionID,
 			Amount:        transaction.Amount,
-			Currency:      transaction.Currency,
 			PaymentMethod: transaction.PaymentMethod,
 			Status:        transaction.Status,
 			Description:   transaction.Description,

@@ -3,7 +3,6 @@ package db
 import (
 	"PayWalletEngine/internal/accounts"
 	"context"
-	"fmt"
 )
 
 type Account struct {
@@ -57,32 +56,11 @@ func (d *Database) GetAccountByNumber(ctx context.Context, accountNumber int64) 
 	}, nil
 }
 
-func (d *Database) UpdateAccountBalance(ctx context.Context, accountNumber string, newBalance float64) error {
-
-	// Start a new transaction
-	tx := d.Client.WithContext(ctx).Begin()
-	var a Account
-	err := tx.Where("account_number = ?", accountNumber).First(&a).Error
-	if err != nil {
-		tx.Rollback() // Rollback transaction on error
-		return err
-	}
-	// Update balance
-	a.Balance = newBalance
-	err = tx.Model(&Account{}).Where("account_number = ?", accountNumber).Update("balance", newBalance).Error
-	if err != nil {
-		tx.Rollback() // Rollback transaction on error
-		return err
-	}
-	tx.Commit() // Commit the transaction
-	return nil
-}
-
 func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Account) error {
 	tx := d.Client.WithContext(ctx).Begin() // Start a new transaction
 
 	var a Account
-	err := tx.Where("account_id = ?", account.ID).First(&a).Error
+	err := tx.Where("id = ?", account.ID).First(&a).Error
 	if err != nil {
 		tx.Rollback() // Rollback transaction on error
 		return err
@@ -94,60 +72,6 @@ func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Ac
 	a.Balance = account.Balance
 
 	err = tx.Save(&a).Error
-	if err != nil {
-		tx.Rollback() // Rollback transaction on error
-		return err
-	}
-
-	tx.Commit() // Commit the transaction
-	return nil
-}
-
-// CreditAccount updates the account balance by adding the specified amount using a transaction
-func (d *Database) CreditAccount(ctx context.Context, accountNumber int64, amount float64) error {
-	tx := d.Client.WithContext(ctx).Begin() // Start a new transaction
-
-	var a Account
-	err := tx.Where("account_number = ?", accountNumber).First(&a).Error
-	if err != nil {
-		tx.Rollback() // Rollback transaction on error
-		return err
-	}
-
-	// Credit the account
-	a.Balance += amount
-
-	err = tx.Model(&Account{}).Where("account_number = ?", accountNumber).Update("balance", a.Balance).Error
-	if err != nil {
-		tx.Rollback() // Rollback transaction on error
-		return err
-	}
-
-	tx.Commit() // Commit the transaction
-	return nil
-}
-
-// DebitAccount updates the account balance by subtracting the specified amount using a transaction
-func (d *Database) DebitAccount(ctx context.Context, accountNumber string, amount float64) error {
-	tx := d.Client.WithContext(ctx).Begin() // Start a new transaction
-
-	var a Account
-	err := tx.Where("account_number = ?", accountNumber).First(&a).Error
-	if err != nil {
-		tx.Rollback() // Rollback transaction on error
-		return err
-	}
-
-	// Check if sufficient balance
-	if a.Balance < amount {
-		tx.Rollback() // Rollback transaction on insufficient balance
-		return fmt.Errorf("insufficient funds in account with number %s", accountNumber)
-	}
-
-	// Debit the account
-	a.Balance -= amount
-
-	err = tx.Model(&Account{}).Where("account_number = ?", accountNumber).Update("balance", a.Balance).Error
 	if err != nil {
 		tx.Rollback() // Rollback transaction on error
 		return err
