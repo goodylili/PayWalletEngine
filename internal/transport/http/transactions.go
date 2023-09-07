@@ -14,7 +14,7 @@ type TransactionService interface {
 	GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*transactions.Transaction, error)
 	GetTransactionsBySender(ctx context.Context, senderAccountNumber int64) ([]transactions.Transaction, error)
 	GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber int64) ([]transactions.Transaction, error)
-	GetTransactionByReference(ctx context.Context, reference int64) (*transactions.Transaction, error)
+	GetTransactionByReference(ctx context.Context, reference string) (*transactions.Transaction, error)
 }
 
 // GetTransactionByTransactionID handles the retrieval of a single transaction

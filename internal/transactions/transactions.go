@@ -14,14 +14,14 @@ type Transaction struct {
 	PaymentMethod string           `json:"payment_method"`
 	Status        string           `json:"status"`
 	Description   string           `json:"description"`
-	Reference     int64            `json:"reference"`
+	Reference     string           `json:"reference"`
 }
 
 type TransactionStore interface {
 	GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*Transaction, error)
 	GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]Transaction, error)
 	GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber string) ([]Transaction, error)
-	GetTransactionByReference(ctx context.Context, reference int64) (*Transaction, error)
+	GetTransactionByReference(ctx context.Context, reference string) (*Transaction, error)
 }
 
 type TransactionService struct {
@@ -43,7 +43,7 @@ func (s *TransactionService) GetTransactionByTransactionID(ctx context.Context, 
 	return transaction, nil
 }
 
-func (s *TransactionService) GetTransactionByReference(ctx context.Context, reference int64) (*Transaction, error) {
+func (s *TransactionService) GetTransactionByReference(ctx context.Context, reference string) (*Transaction, error) {
 	transaction, err := s.Store.GetTransactionByReference(ctx, reference)
 	if err != nil {
 		log.Printf("Error getting transaction by reference: %v", err)
