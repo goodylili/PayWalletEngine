@@ -14,7 +14,8 @@ type User struct {
 	Email    string  `gorm:"unique;not null"` // email address for the user
 	Password string  `gorm:"not null"`        // hashed password for the user
 	Balance  float64 `gorm:"default:0"`       // current balance for the user's wallet
-	IsActive bool    `gorm:"default:true"`    // status of the user, true means active
+	IsActive bool    `gorm:"default:true"`
+	Account  Account `gorm:"foreignKey:UserID"` // status of the user, true means active
 }
 
 // CreateUser creates a new user in the database

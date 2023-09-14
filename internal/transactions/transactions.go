@@ -19,9 +19,11 @@ type Transaction struct {
 
 type TransactionStore interface {
 	GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*Transaction, error)
-	GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]Transaction, error)
-	GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber string) ([]Transaction, error)
+	GetTransactionsFromAccount(ctx context.Context, accountNumber int64) ([]Transaction, error)
 	GetTransactionByReference(ctx context.Context, reference string) (*Transaction, error)
+	DebitAccount(ctx context.Context, senderAccountNumber int64, amount float64, description string, paymentMethod string) (Transaction, error)
+	CreditAccount(ctx context.Context, retrieveAccountNumber int64, amount float64, description string, paymentMethod string) (Transaction, error)
+	TransferFunds(ctx context.Context, senderAccountNumber int64, receiverAccountNumber int64, amount float64, description string, paymentMethod string) (Transaction, error)
 }
 
 type TransactionService struct {
@@ -50,22 +52,4 @@ func (s *TransactionService) GetTransactionByReference(ctx context.Context, refe
 		return nil, err
 	}
 	return transaction, nil
-}
-
-func (s *TransactionService) GetTransactionsBySender(ctx context.Context, senderAccountNumber string) ([]Transaction, error) {
-	transactions, err := s.Store.GetTransactionsBySender(ctx, senderAccountNumber)
-	if err != nil {
-		log.Printf("Error getting transactions by sender: %v", err)
-		return nil, err
-	}
-	return transactions, nil
-}
-
-func (s *TransactionService) GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber string) ([]Transaction, error) {
-	transactions, err := s.Store.GetTransactionsByReceiver(ctx, receiverAccountNumber)
-	if err != nil {
-		log.Printf("Error getting transactions by receiver: %v", err)
-		return nil, err
-	}
-	return transactions, nil
 }

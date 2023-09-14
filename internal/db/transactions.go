@@ -42,7 +42,7 @@ func (d *Database) GetTransactionByReference(ctx context.Context, reference int6
 // GetTransactionByTransactionID retrieves a transaction by it's ID
 func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*transactions.Transaction, error) {
 	var t Transaction
-	err := d.Client.WithContext(ctx).Where("reference = ?", transactionID).First(&t).Error
+	err := d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).First(&t).Error
 	if err != nil {
 		return nil, err
 	}
@@ -82,25 +82,25 @@ func (d *Database) GetTransactionsFromAccount(ctx context.Context, accountNumber
 }
 
 // CreditAccount credits an account for a transaction
-func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int64, amount float64, description string, paymentMethod string) error {
+func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int64, amount float64, description string, paymentMethod string) (Transaction, error) {
 	// Begin the transaction and generate the ID
 	tx := d.Client.Begin()
 	transactionID, err := transactions.GenerateTransactionID()
 	if err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	reference, err := transactions.GenerateTransactionRef(transactionID)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	var receiverAccount accounts.Account
 	if err := tx.WithContext(ctx).Where("account_number = ?", receiverAccountNumber).First(&receiverAccount).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	t := Transaction{
@@ -115,54 +115,54 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 
 	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Update the receiver's account balance
 	receiverAccount.Balance += amount
 	if err := tx.WithContext(ctx).Save(&receiverAccount).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	t.Status = "Completed"
 	if err := tx.WithContext(ctx).Save(&t).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	tx.Commit()
-	return nil
+	return t, nil
 }
 
 // DebitAccount debits the specified account
-func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, amount float64, description string, paymentMethod string) error {
+func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, amount float64, description string, paymentMethod string) (Transaction, error) {
 	tx := d.Client.Begin()
 
 	// Generate transaction ID and Reference
 	transactionID, err := transactions.GenerateTransactionID()
 	if err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	reference, err := transactions.GenerateTransactionRef(transactionID)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Fetch the sender's account details
 	var senderAccount accounts.Account
 	if err := tx.WithContext(ctx).Where("account_number = ?", senderAccountNumber).First(&senderAccount).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Check if there are sufficient funds in the sender's account
 	if senderAccount.Balance < amount {
 		tx.Rollback()
-		return fmt.Errorf("insufficient funds in account")
+		return Transaction{}, fmt.Errorf("insufficient funds in account")
 	}
 
 	t := Transaction{
@@ -178,28 +178,28 @@ func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, 
 	// Save transaction in database
 	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Deduct the amount from the sender's account balance
 	senderAccount.Balance -= amount
 	if err := tx.WithContext(ctx).Save(&senderAccount).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	t.Status = "Completed"
 	if err := tx.WithContext(ctx).Save(&t).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	tx.Commit()
-	return nil
+	return t, nil
 }
 
 // TransferFunds transfers funds by crediting and debiting specified users
-func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64, receiverAccountNumber int64, amount float64, description string, paymentMethod string) error {
+func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64, receiverAccountNumber int64, amount float64, description string, paymentMethod string) (Transaction, error) {
 	// Begin transactions and generate ID and reference
 	tx := d.Client.Begin()
 
@@ -207,38 +207,38 @@ func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64,
 	transactionID, err := transactions.GenerateTransactionID()
 	if err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 	reference, err := transactions.GenerateTransactionRef(transactionID)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Fetch the sender's account details
 	var senderAccount accounts.Account
 	if err := tx.WithContext(ctx).Where("account_number = ?", senderAccountNumber).First(&senderAccount).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Check if there are sufficient funds in the sender's account
 	if senderAccount.Balance < amount {
 		tx.Rollback()
-		return fmt.Errorf("insufficient funds in account")
+		return Transaction{}, fmt.Errorf("insufficient funds in account")
 	}
 
 	// Debit the sender's account
 	senderAccount.Balance -= amount
 	if err := tx.WithContext(ctx).Save(&senderAccount).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 	// Fetch the receiver's account details
 	var receiverAccount accounts.Account
 	if err := tx.WithContext(ctx).Where("account_number = ?", receiverAccountNumber).First(&receiverAccount).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Create a transaction with status "Pending"
@@ -256,23 +256,23 @@ func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64,
 	// Create a new transaction
 	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Credit the receiver's account
 	receiverAccount.Balance += amount
 	if err := tx.WithContext(ctx).Save(&receiverAccount).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	// Update the transaction status to "Completed"
 	t.Status = "Completed"
 	if err := tx.WithContext(ctx).Save(&t).Error; err != nil {
 		tx.Rollback()
-		return err
+		return Transaction{}, err
 	}
 
 	tx.Commit()
-	return nil
+	return t, nil
 }

@@ -2,6 +2,7 @@ package http
 
 import (
 	"PayWalletEngine/internal/transactions"
+	"PayWalletEngine/utils"
 	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
@@ -12,8 +13,7 @@ import (
 
 type TransactionService interface {
 	GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*transactions.Transaction, error)
-	GetTransactionsBySender(ctx context.Context, senderAccountNumber int64) ([]transactions.Transaction, error)
-	GetTransactionsByReceiver(ctx context.Context, receiverAccountNumber int64) ([]transactions.Transaction, error)
+	GetTransactionsFromAccount(ctx context.Context, accountNumber int64) ([]transactions.Transaction, error)
 	GetTransactionByReference(ctx context.Context, reference string) (*transactions.Transaction, error)
 }
 
@@ -43,45 +43,30 @@ func (h *Handler) GetTransactionByTransactionID(writer http.ResponseWriter, requ
 }
 
 // GetTransactionsBySender handles the retrieval of all transactions made by a specific sender.
-func (h *Handler) GetTransactionsBySender(writer http.ResponseWriter, request *http.Request) {
+func (h *Handler) GetTransactionsFromAccount(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	senderAccountNumber := vars["accountNumber"]
-	if senderAccountNumber == "" {
-		writer.WriteHeader(http.StatusBadRequest)
+	senderAccountNumberStr := vars["account_number"]
+	if senderAccountNumberStr == "" {
+		utils.WriteErrorResponse(writer, http.StatusBadRequest, "account number is required")
+		return
+	}
+
+	senderAccountNumber, err := strconv.ParseInt(senderAccountNumberStr, 10, 64)
+	if err != nil {
+		utils.WriteErrorResponse(writer, http.StatusBadRequest, "invalid account number format")
 		return
 	}
 
 	txns, err := h.Transaction.GetTransactionsBySender(request.Context(), senderAccountNumber)
 	if err != nil {
 		log.Println(err)
-		writer.WriteHeader(http.StatusInternalServerError)
+		utils.WriteErrorResponse(writer, http.StatusInternalServerError, "internal server error")
 		return
 	}
 	err = json.NewEncoder(writer).Encode(txns)
 	if err != nil {
-		log.Panic(err)
-	}
-
-}
-
-// GetTransactionsByReceiver handles the retrieval of all transactions received by a specific receiver.
-func (h *Handler) GetTransactionsByReceiver(writer http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	receiverAccountNumber := vars["accountNumber"]
-	if receiverAccountNumber == "" {
-		writer.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	txns, err := h.Transaction.GetTransactionsByReceiver(request.Context(), receiverAccountNumber)
-	if err != nil {
-		log.Println(err)
-		writer.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	err = json.NewEncoder(writer).Encode(txns)
-	if err != nil {
-		log.Panic(err)
+		log.Println("Error encoding response:", err)
+		utils.WriteErrorResponse(writer, http.StatusInternalServerError, "internal server error")
 	}
 }
 
