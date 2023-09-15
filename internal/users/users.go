@@ -20,13 +20,13 @@ type User struct {
 
 type UserStore interface {
 	CreateUser(context.Context, *User) error
-	GetUserByID(context.Context, string) (User, error)
+	GetUserByID(context.Context, int64) (User, error)
 	GetByEmail(context.Context, string) (*User, error)
 	GetByUsername(context.Context, string) (*User, error)
 	UpdateUser(context.Context, User) error
 	ResetPassword(context.Context, User) error
-	DeactivateUsers(context.Context, string) error
-	Ping(ctx context.Context) error
+	DeactivateUserByID(context.Context, int64) error
+	PingDatabase(ctx context.Context) error
 }
 
 // UserService is the blueprint for the user logic
@@ -40,6 +40,7 @@ func NewService(store UserStore) UserService {
 		Store: store,
 	}
 }
+
 func (u *UserService) CreateUser(ctx context.Context, user *User) error {
 	hashedPassword, err := hashPassword(user.Password)
 	if err != nil {
@@ -55,7 +56,7 @@ func (u *UserService) CreateUser(ctx context.Context, user *User) error {
 	return nil
 }
 
-func (u *UserService) GetUserByID(ctx context.Context, id string) (User, error) {
+func (u *UserService) GetUserByID(ctx context.Context, id int64) (User, error) {
 	user, err := u.Store.GetUserByID(ctx, id)
 	if err != nil {
 		log.Printf("Error fetching user with ID %s: %v", id, err)
@@ -74,9 +75,9 @@ func (u *UserService) UpdateUser(ctx context.Context, user User) error {
 	return nil
 }
 
-func (u *UserService) DeactivateUser(ctx context.Context, id string) error {
-	if err := u.Store.DeactivateUsers(ctx, id); err != nil {
-		log.Printf("Error deleting user with ID %s: %v", id, err)
+func (u *UserService) DeactivateUserByID(ctx context.Context, id int64) error {
+	if err := u.Store.DeactivateUserByID(ctx, id); err != nil {
+		log.Printf("Error deactivating user with ID %s: %v", id, err)
 		return err
 	}
 
@@ -106,7 +107,7 @@ func (u *UserService) GetByUsername(ctx context.Context, username string) (*User
 // ReadyCheck - a function that tests we are functionally ready to serve requests
 func (u *UserService) ReadyCheck(ctx context.Context) error {
 	log.Println("Checking readiness")
-	return u.Store.Ping(ctx)
+	return u.Store.PingDatabase(ctx)
 }
 
 func (u *UserService) ResetPassword(ctx context.Context, user User) error {

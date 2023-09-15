@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type UserService interface {
@@ -39,7 +40,11 @@ func (h *Handler) CreateUser(writer http.ResponseWriter, request *http.Request) 
 // GetUser extracts the id from the URL parameters and then fetches the user with that id from the database using the GetUser method of the UserService interface. If the user is found, it encodes and sends the user as a response.
 func (h *Handler) GetUser(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	id := vars["id"]
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
 	u, err := h.Users.GetUserByID(request.Context(), id)
 	if err != nil {
 		log.Println(err)
@@ -103,8 +108,12 @@ func (h *Handler) UpdateUser(writer http.ResponseWriter, request *http.Request) 
 // DeactivateUserByID extracts the id from the URL parameters and then deletes the user with that id from the database using the DeactivateUserByID method of the UserService interface. If the user is successfully deleted, it sends a No Content status code as a response.
 func (h *Handler) DeactivateUserByID(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	id := vars["id"]
-	err := h.Users.DeactivateUser(request.Context(), id)
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+	err = h.Users.DeactivateUserByID(request.Context(), id)
 	if err != nil {
 		log.Println(err)
 		return

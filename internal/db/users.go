@@ -18,7 +18,7 @@ type User struct {
 	IsActive bool      `gorm:"default:true"`
 }
 
-func (d *Database) CreateUser(ctx context.Context, user *User) error {
+func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
 	dbUser := &User{
 		Username: user.Username,
 		Email:    user.Email,
@@ -118,7 +118,7 @@ func (d *Database) DeactivateUserByID(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (d *Database) ResetPassword(ctx context.Context, newUser User) error {
+func (d *Database) ResetPassword(ctx context.Context, newUser users.User) error {
 	// Assuming that the newUser.Password is already hashed
 
 	// Update user password where username, email match and the user is active
@@ -131,6 +131,19 @@ func (d *Database) ResetPassword(ctx context.Context, newUser User) error {
 
 	if result.Error != nil {
 		return result.Error
+	}
+
+	return nil
+}
+
+func (d *Database) PingDatabase(ctx context.Context) error {
+	db, err := d.Client.DB()
+	if err != nil {
+		return err
+	}
+
+	if err := db.PingContext(ctx); err != nil {
+		return err
 	}
 
 	return nil
