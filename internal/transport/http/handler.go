@@ -73,22 +73,23 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/v1/users/email/{email}", h.GetByEmail).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/username/{username}", h.GetByUsername).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/{id}", h.UpdateUser).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/users/{id}", h.DeactivateUser).Methods("DELETE")
+	h.Router.HandleFunc("/api/v1/users/{id}", h.DeactivateUserByID).Methods("DELETE")
 	h.Router.HandleFunc("/api/v1/users/ping", h.Ping).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/reset", h.ResetPassword).Methods("PUT")
 
-	// Account Routes
+	// AccountNumber Routes
 	h.Router.HandleFunc("/api/v1/account", h.CreateAccount).Methods("POST")
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetAccountByID).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/number/{number}", h.GetAccountByNumber).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.UpdateAccountDetails).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/accounts/balance/{account_number}/{amount}", h.UpdateAccountBalance).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/accounts/{id}", h.DeleteAccountDetails).Methods("DELETE")
 
 	// Transactions Routes
-	h.Router.HandleFunc("/api/v1/transaction", h.CreateTransaction).Methods("POST")
 	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}", h.GetTransactionByTransactionID).Methods("GET")
-	h.Router.HandleFunc("/api/v1/transactions/{transaction_reference}", h.GetTransactionByReference).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/account/{account_number}", h.GetTransactionsFromAccount).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/reference/{transaction_reference}", h.GetTransactionByReference).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/credit", h.CreditAccount).Methods("POST")
+	h.Router.HandleFunc("/api/v1/transactions/debit", h.DebitAccount).Methods("POST")
+	h.Router.HandleFunc("/api/v1/transactions/transfer", h.TransferFunds).Methods("POST")
 
 }
 

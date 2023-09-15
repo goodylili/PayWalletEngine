@@ -3,10 +3,11 @@ package db
 import (
 	"PayWalletEngine/internal/accounts"
 	"context"
+	"gorm.io/gorm"
 )
 
 type Account struct {
-	ID            uint    `gorm:"primaryKey;foreignKey:ID"` // Correct foreign key reference
+	gorm.Model
 	AccountNumber string  `gorm:"type:varchar(100);uniqueIndex;column:account_number"`
 	AccountType   string  `gorm:"type:varchar(50)"`
 	Balance       float64 `gorm:"type:decimal(10,2)"`
@@ -20,7 +21,6 @@ func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account)
 	}
 	account.AccountNumber = accountNumber
 	dbAccount := Account{
-		ID:            account.ID,
 		AccountNumber: account.AccountNumber,
 		AccountType:   account.AccountType,
 		Balance:       account.Balance,

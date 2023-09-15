@@ -10,10 +10,11 @@ import (
 
 type Transaction struct {
 	gorm.Model
-	Sender        accounts.Account `gorm:"foreignkey:AccountNumber"`
-	Receiver      accounts.Account `gorm:"foreignkey:AccountNumber"`
+	Sender        accounts.Account `gorm:"foreignkey:SenderAccountNumber"`
+	Receiver      accounts.Account `gorm:"foreignkey:ReceiverAccountNumber"`
 	Amount        float64          `gorm:"type:decimal(10,2);not null"`
 	PaymentMethod string           `gorm:"type:varchar(50);not null"`
+	Type          string           `gorm:"type:varchar(50);not null"` // "credit", "debit", or "transfer"
 	Status        string           `gorm:"type:varchar(50);not null"`
 	Description   string           `gorm:"type:varchar(255)"`
 	TransactionID int64            `gorm:"type:varchar(100);unique_index"`
@@ -32,6 +33,7 @@ func (d *Database) GetTransactionByReference(ctx context.Context, reference int6
 		Receiver:      t.Receiver,
 		TransactionID: t.TransactionID,
 		Amount:        t.Amount,
+		Type:          t.Type,
 		PaymentMethod: t.PaymentMethod,
 		Status:        t.Status,
 		Description:   t.Description,
@@ -51,6 +53,8 @@ func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactio
 		Receiver:      t.Receiver,
 		TransactionID: t.TransactionID,
 		Amount:        t.Amount,
+		Type:          t.Type,
+
 		PaymentMethod: t.PaymentMethod,
 		Status:        t.Status,
 		Description:   t.Description,
@@ -72,6 +76,8 @@ func (d *Database) GetTransactionsFromAccount(ctx context.Context, accountNumber
 			Receiver:      transaction.Receiver,
 			TransactionID: transaction.TransactionID,
 			Amount:        transaction.Amount,
+			Type:          transaction.Type,
+
 			PaymentMethod: transaction.PaymentMethod,
 			Status:        transaction.Status,
 			Description:   transaction.Description,
@@ -108,6 +114,7 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 		Amount:        amount,
 		PaymentMethod: paymentMethod,
 		Status:        "Pending",
+		Type:          "Credit",
 		Description:   description,
 		TransactionID: transactionID,
 		Reference:     reference,
@@ -170,6 +177,7 @@ func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, 
 		Amount:        amount,
 		PaymentMethod: paymentMethod,
 		Status:        "Pending",
+		Type:          "Debit",
 		Description:   description,
 		TransactionID: transactionID,
 		Reference:     reference,
@@ -246,8 +254,9 @@ func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64,
 		Sender:        senderAccount,
 		Receiver:      receiverAccount,
 		Amount:        amount,
-		PaymentMethod: paymentMethod, // or any other required method
+		PaymentMethod: "Funds Transfer", // or any other required method
 		Status:        "Pending",
+		Type:          "Transfer",
 		Description:   description,
 		TransactionID: transactionID,
 		Reference:     reference,

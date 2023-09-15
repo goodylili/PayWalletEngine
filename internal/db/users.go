@@ -10,26 +10,27 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string  `gorm:"unique;not null"` // username for the user
-	Email    string  `gorm:"unique;not null"` // email address for the user
-	Password string  `gorm:"not null"`        // hashed password for the user
-	Balance  float64 `gorm:"default:0"`       // current balance for the user's wallet
-	IsActive bool    `gorm:"default:true"`
-	Account  Account `gorm:"foreignKey:UserID"` // status of the user, true means active
+	Account  []Account `gorm:"foreignkey:ID"`
+	Username string    `gorm:"unique;not null"`
+	Email    string    `gorm:"unique;not null"`
+	Password string    `gorm:"not null"`
+	Balance  float64   `gorm:"default:0"`
+	IsActive bool      `gorm:"default:true"`
 }
 
-// CreateUser creates a new user in the database
-func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
-	dbUser := User{
+func (d *Database) CreateUser(ctx context.Context, user *User) error {
+	dbUser := &User{
 		Username: user.Username,
 		Email:    user.Email,
 		Password: user.Password,
 		Balance:  user.Balance,
-		IsActive: true,
+		IsActive: user.IsActive,
 	}
-	if err := d.Client.WithContext(ctx).Create(&dbUser).Error; err != nil {
+
+	if err := d.Client.WithContext(ctx).Create(dbUser).Error; err != nil {
 		return err
 	}
+
 	return nil
 }
 

@@ -2,11 +2,9 @@ package http
 
 import (
 	"PayWalletEngine/internal/transactions"
-	"PayWalletEngine/utils"
 	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"log"
 	"net/http"
 	"strconv"
 )
@@ -17,56 +15,58 @@ type TransactionService interface {
 	GetTransactionByReference(ctx context.Context, reference string) (*transactions.Transaction, error)
 }
 
-// GetTransactionByTransactionID handles the retrieval of a single transaction
+// GetTransactionByTransactionID handles the retrieval of a single transaction.
 func (h *Handler) GetTransactionByTransactionID(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	stringID := vars["transaction_id"]
 	if stringID == "" {
-		writer.WriteHeader(http.StatusBadRequest)
+		http.Error(writer, "Transaction ID is required", http.StatusBadRequest)
 		return
 	}
 	id, err := strconv.ParseInt(stringID, 10, 64)
 	if err != nil {
-		writer.Write([]byte("There's an error with the transaction id"))
+		http.Error(writer, "Invalid transaction ID format", http.StatusBadRequest)
+		return
 	}
 
 	txn, err := h.Transaction.GetTransactionByTransactionID(request.Context(), id)
 	if err != nil {
-		log.Println(err)
-		writer.WriteHeader(http.StatusInternalServerError)
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+
+	writer.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(writer).Encode(txn)
 	if err != nil {
-		log.Panic(err)
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
-// GetTransactionsBySender handles the retrieval of all transactions made by a specific sender.
+// GetTransactionsFromAccount handles the retrieval of all transactions made by a specific sender.
 func (h *Handler) GetTransactionsFromAccount(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	senderAccountNumberStr := vars["account_number"]
 	if senderAccountNumberStr == "" {
-		utils.WriteErrorResponse(writer, http.StatusBadRequest, "account number is required")
+		http.Error(writer, "Account number is required", http.StatusBadRequest)
 		return
 	}
 
 	senderAccountNumber, err := strconv.ParseInt(senderAccountNumberStr, 10, 64)
 	if err != nil {
-		utils.WriteErrorResponse(writer, http.StatusBadRequest, "invalid account number format")
+		http.Error(writer, "Invalid account number format", http.StatusBadRequest)
 		return
 	}
 
-	txns, err := h.Transaction.GetTransactionsBySender(request.Context(), senderAccountNumber)
+	txns, err := h.Transaction.GetTransactionsFromAccount(request.Context(), senderAccountNumber)
 	if err != nil {
-		log.Println(err)
-		utils.WriteErrorResponse(writer, http.StatusInternalServerError, "internal server error")
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+
+	writer.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(writer).Encode(txns)
 	if err != nil {
-		log.Println("Error encoding response:", err)
-		utils.WriteErrorResponse(writer, http.StatusInternalServerError, "internal server error")
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
@@ -75,25 +75,110 @@ func (h *Handler) GetTransactionByReference(writer http.ResponseWriter, request 
 	vars := mux.Vars(request)
 	stringReference := vars["transaction_reference"]
 	if stringReference == "" {
-		writer.WriteHeader(http.StatusBadRequest)
+		http.Error(writer, "Reference number is required", http.StatusBadRequest)
 		return
 	}
 
 	reference, err := strconv.ParseInt(stringReference, 10, 64)
 	if err != nil {
-		writer.Write([]byte("There's an error with the reference number"))
+		http.Error(writer, "Invalid reference number format", http.StatusBadRequest)
 		return
 	}
 
-	txn, err := h.Transaction.GetTransactionByReference(request.Context(), reference)
+	txn, err := h.Transaction.GetTransactionByReference(request.Context(), strconv.FormatInt(reference, 10))
 	if err != nil {
-		log.Println(err)
-		writer.WriteHeader(http.StatusInternalServerError)
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
+	writer.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(writer).Encode(txn)
 	if err != nil {
-		log.Panic(err)
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// CreditAccount handles crediting an account for a transaction.
+func (h *Handler) CreditAccount(writer http.ResponseWriter, request *http.Request) {
+	var creditRequest struct {
+		ReceiverAccountNumber int64   `json:"receiver_account_number"`
+		Amount                float64 `json:"amount"`
+		Description           string  `json:"description"`
+		PaymentMethod         string  `json:"payment_method"`
+	}
+
+	err := json.NewDecoder(request.Body).Decode(&creditRequest)
+	if err != nil {
+		http.Error(writer, "Invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	txn, err := h.Transaction.CreditAccount(request.Context(), creditRequest.ReceiverAccountNumber, creditRequest.Amount, creditRequest.Description, creditRequest.PaymentMethod)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(writer).Encode(txn)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// DebitAccount handles debiting the specified account.
+func (h *Handler) DebitAccount(writer http.ResponseWriter, request *http.Request) {
+	var debitRequest struct {
+		SenderAccountNumber int64   `json:"sender_account_number"`
+		Amount              float64 `json:"amount"`
+		Description         string  `json:"description"`
+		PaymentMethod       string  `json:"payment_method"`
+	}
+
+	err := json.NewDecoder(request.Body).Decode(&debitRequest)
+	if err != nil {
+		http.Error(writer, "Invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	txn, err := h.Transaction.DebitAccount(request.Context(), debitRequest.SenderAccountNumber, debitRequest.Amount, debitRequest.Description, debitRequest.PaymentMethod)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(writer).Encode(txn)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// TransferFunds handles transferring funds by crediting and debiting specified users.
+func (h *Handler) TransferFunds(writer http.ResponseWriter, request *http.Request) {
+	var transferRequest struct {
+		SenderAccountNumber   int64   `json:"sender_account_number"`
+		ReceiverAccountNumber int64   `json:"receiver_account_number"`
+		Amount                float64 `json:"amount"`
+		Description           string  `json:"description"`
+		PaymentMethod         string  `json:"payment_method"`
+	}
+
+	err := json.NewDecoder(request.Body).Decode(&transferRequest)
+	if err != nil {
+		http.Error(writer, "Invalid request format", http.StatusBadRequest)
+		return
+	}
+
+	txn, err := h.Transaction.TransferFunds(request.Context(), transferRequest.SenderAccountNumber, transferRequest.ReceiverAccountNumber, transferRequest.Amount, transferRequest.Description, transferRequest.PaymentMethod)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(writer).Encode(txn)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 	}
 }

@@ -100,8 +100,8 @@ func (h *Handler) UpdateUser(writer http.ResponseWriter, request *http.Request) 
 	}
 }
 
-// DeactivateUser extracts the id from the URL parameters and then deletes the user with that id from the database using the DeactivateUser method of the UserService interface. If the user is successfully deleted, it sends a No Content status code as a response.
-func (h *Handler) DeactivateUser(writer http.ResponseWriter, request *http.Request) {
+// DeactivateUserByID extracts the id from the URL parameters and then deletes the user with that id from the database using the DeactivateUserByID method of the UserService interface. If the user is successfully deleted, it sends a No Content status code as a response.
+func (h *Handler) DeactivateUserByID(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id := vars["id"]
 	err := h.Users.DeactivateUser(request.Context(), id)

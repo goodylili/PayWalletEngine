@@ -17,7 +17,7 @@ type AccountService interface {
 	UpdateAccountDetails(context.Context, accounts.Account) error
 }
 
-// CreateAccount decodes an Account object from the HTTP request body and then tries to create a new account in the database using the CreateAccount method of the AccountService interface. If the account is successfully created, it encodes and sends the created account as a response.
+// CreateAccount decodes an AccountNumber object from the HTTP request body and then tries to create a new account in the database using the CreateAccount method of the AccountService interface. If the account is successfully created, it encodes and sends the created account as a response.
 func (h *Handler) CreateAccount(writer http.ResponseWriter, request *http.Request) {
 	var acct accounts.Account
 	if err := json.NewDecoder(request.Body).Decode(&acct); err != nil {
@@ -69,7 +69,7 @@ func (h *Handler) GetAccountByNumber(writer http.ResponseWriter, request *http.R
 	}
 }
 
-// UpdateAccountDetails decodes an Account object from the HTTP request body and then updates the account in the database using the UpdateAccountDetails method of the AccountService interface. If the account is successfully updated, it responds with a status code 200 OK.
+// UpdateAccountDetails decodes an AccountNumber object from the HTTP request body and then updates the account in the database using the UpdateAccountDetails method of the AccountService interface. If the account is successfully updated, it responds with a status code 200 OK.
 func (h *Handler) UpdateAccountDetails(writer http.ResponseWriter, request *http.Request) {
 	var acct accounts.Account
 	if err := json.NewDecoder(request.Body).Decode(&acct); err != nil {
