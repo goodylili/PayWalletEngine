@@ -19,7 +19,7 @@ func GenerateTransactionID() (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	hash := sha256.Sum256([]byte(fmt.Sprintf("%d%s", randomInt, uid.String())))
+	hash := sha256.Sum256([]byte(fmt.Sprintf("%d%v", randomInt, uid.String())))
 	hashInt := big.NewInt(0)
 	hashInt.SetBytes(hash[:])
 	accountNumber := hashInt.Mod(hashInt, big.NewInt(1e16)).Int64()

@@ -59,7 +59,7 @@ func (u *UserService) CreateUser(ctx context.Context, user *User) error {
 func (u *UserService) GetUserByID(ctx context.Context, id int64) (User, error) {
 	user, err := u.Store.GetUserByID(ctx, id)
 	if err != nil {
-		log.Printf("Error fetching user with ID %s: %v", id, err)
+		log.Printf("Error fetching user with ID %v: %v", id, err)
 		return user, err
 	}
 	return user, nil
@@ -77,7 +77,7 @@ func (u *UserService) UpdateUser(ctx context.Context, user User) error {
 
 func (u *UserService) DeactivateUserByID(ctx context.Context, id int64) error {
 	if err := u.Store.DeactivateUserByID(ctx, id); err != nil {
-		log.Printf("Error deactivating user with ID %s: %v", id, err)
+		log.Printf("Error deactivating user with ID %v: %v", id, err)
 		return err
 	}
 
@@ -87,7 +87,7 @@ func (u *UserService) DeactivateUserByID(ctx context.Context, id int64) error {
 func (u *UserService) GetByEmail(ctx context.Context, email string) (*User, error) {
 	user, err := u.Store.GetByEmail(ctx, email)
 	if err != nil {
-		log.Printf("Error fetching user with email %s: %v", email, err)
+		log.Printf("Error fetching user with email %v: %v", email, err)
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func (u *UserService) GetByEmail(ctx context.Context, email string) (*User, erro
 func (u *UserService) GetByUsername(ctx context.Context, username string) (*User, error) {
 	user, err := u.Store.GetByUsername(ctx, username)
 	if err != nil {
-		log.Printf("Error fetching user with username %s: %v", username, err)
+		log.Printf("Error fetching user with username %v: %v", username, err)
 		return nil, err
 	}
 
@@ -122,7 +122,7 @@ func (u *UserService) ResetPassword(ctx context.Context, user User) error {
 
 	// Next, we'll call the store's ResetPassword method
 	if err := u.Store.ResetPassword(ctx, user); err != nil {
-		log.Printf("Error resetting password for user with username %s: %v", user.Username, err)
+		log.Printf("Error resetting password for user with username %v: %v", user.Username, err)
 		return err
 	}
 

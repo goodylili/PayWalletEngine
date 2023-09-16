@@ -18,7 +18,7 @@ func GenerateAccountNumber() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	hash := sha256.Sum256([]byte(fmt.Sprintf("%d%s", randomInt, uid.String())))
+	hash := sha256.Sum256([]byte(fmt.Sprintf("%d%v", randomInt, uid.String())))
 	hashInt := big.NewInt(0)
 	hashInt.SetBytes(hash[:])
 	accountNumber := hashInt.Mod(hashInt, big.NewInt(1e10)).Int64()
