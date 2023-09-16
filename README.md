@@ -1,6 +1,14 @@
 # PayWalletEngine (WIP)
-[![Programming Language](https://img.shields.io/badge/Language-Go-success?style=flat-square)](https://go.dev)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-success.svg?style=flat-square)](https://github.com/Goodnessuc/Go-linker/pulls)
+
+<p align="center">
+   <a href="http://makeapullrequest.com"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" alt=""></a>
+   <a href="https://golang.org"><img src="https://img.shields.io/badge/Made%20with-Go-1f425f.svg" alt="made-with-Go"></a>
+   <a href="https://goreportcard.com/report/github.com/goodnessuc/paywalletengine"><img src="https://goreportcard.com/badge/github.com/goodnessuc/paywalletengine" alt="GoReportCard"></a>
+   <a href="https://github.com/goodnessuc/paywalletengine"><img src="https://img.shields.io/github/go-mod/go-version/goodnessuc/paywalletengine.svg" alt="Go.mod version"></a>
+   <a href="https://github.com/goodnessuc/paywalletengine/blob/master/LICENSE"><img src="https://img.shields.io/github/license/goodnessuc/paywalletengine.svg" alt="LICENSE"></a>
+   <a href="https://github.com/goodnessuc/paywalletengine/releases/"><img src="https://img.shields.io/github/release/goodnessuc/paywalletengine.svg" alt="Latest release"></a>
+</p>
+
 
 ## Introduction
 
