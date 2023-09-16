@@ -16,28 +16,34 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v2
+        # This action checks out your code repository.
 
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v2
+      - name: Set up Go 1.19
+        uses: actions/setup-go@v3
         with:
           go-version: ^1.19
         id: go
+        # This action sets up the specified version of Go.
 
       - name: Install dependencies
         run: |
           go mod download
+        # This action installs the project's Go dependencies using 'go mod download'.
 
       - name: Build
         run: go build -v ./...
+        # This action builds your Go project.
 
       - name: Test
         run: go test -v ./...
+        # This action runs tests for your Go project.
 
       - name: Vet
         run: go vet ./...
+        # This action performs static analysis of Go code to catch potential issues.
 
       - name: Lint
         run: |
           go get -u golang.org/x/lint/golint
           golint ./...
-
+        # This action installs Golint and runs it to check your Go code for style issues.
