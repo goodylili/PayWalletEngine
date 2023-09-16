@@ -10,15 +10,17 @@ import (
 
 type Transaction struct {
 	gorm.Model
-	Sender        accounts.Account `gorm:"foreignkey:SenderAccountNumber"`
-	Receiver      accounts.Account `gorm:"foreignkey:ReceiverAccountNumber"`
-	Amount        float64          `gorm:"type:decimal(10,2);not null"`
-	PaymentMethod string           `gorm:"type:varchar(50);not null"`
-	Type          string           `gorm:"type:varchar(50);not null"` // "credit", "debit", or "transfer"
-	Status        string           `gorm:"type:varchar(50);not null"`
-	Description   string           `gorm:"type:varchar(255)"`
-	TransactionID int64            `gorm:"type:varchar(100);unique_index"`
-	Reference     string           `gorm:"type:varchar(100);unique_index"`
+	SenderAccountID   uint    // Foreign key referencing Account.ID for sender
+	ReceiverAccountID uint    // Foreign key referencing Account.ID for receiver
+	Sender            Account `gorm:"foreignKey:ID"`
+	Receiver          Account `gorm:"foreignKey:ID"`
+	Amount            float64 `gorm:"type:decimal(10,2);not null"`
+	PaymentMethod     string  `gorm:"type:varchar(50);not null"`
+	Type              string  `gorm:"type:varchar(50);not null"` // "credit", "debit", or "transfer"
+	Status            string  `gorm:"type:varchar(50);not null"`
+	Description       string  `gorm:"type:varchar(255)"`
+	TransactionID     int64   `gorm:"type:varchar(100);unique_index"`
+	Reference         string  `gorm:"type:varchar(100);unique_index"`
 }
 
 // GetTransactionByReference retrieves a transaction by its reference
@@ -29,15 +31,15 @@ func (d *Database) GetTransactionByReference(ctx context.Context, reference stri
 		return nil, err
 	}
 	return &transactions.Transaction{
-		Sender:        t.Sender,
-		Receiver:      t.Receiver,
-		TransactionID: t.TransactionID,
-		Amount:        t.Amount,
-		Type:          t.Type,
-		PaymentMethod: t.PaymentMethod,
-		Status:        t.Status,
-		Description:   t.Description,
-		Reference:     t.Reference,
+		SenderAccountID:   t.Sender.ID,
+		ReceiverAccountID: t.Receiver.ID,
+		TransactionID:     t.TransactionID,
+		Amount:            t.Amount,
+		Type:              t.Type,
+		PaymentMethod:     t.PaymentMethod,
+		Status:            t.Status,
+		Description:       t.Description,
+		Reference:         t.Reference,
 	}, nil
 }
 
@@ -49,15 +51,15 @@ func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactio
 		return nil, err
 	}
 	return &transactions.Transaction{
-		Sender:        t.Sender,
-		Receiver:      t.Receiver,
-		TransactionID: t.TransactionID,
-		Amount:        t.Amount,
-		Type:          t.Type,
-		PaymentMethod: t.PaymentMethod,
-		Status:        t.Status,
-		Description:   t.Description,
-		Reference:     t.Reference,
+		SenderAccountID:   t.Sender.ID,
+		ReceiverAccountID: t.Receiver.ID,
+		TransactionID:     t.TransactionID,
+		Amount:            t.Amount,
+		Type:              t.Type,
+		PaymentMethod:     t.PaymentMethod,
+		Status:            t.Status,
+		Description:       t.Description,
+		Reference:         t.Reference,
 	}, nil
 }
 
@@ -71,16 +73,15 @@ func (d *Database) GetTransactionsFromAccount(ctx context.Context, accountNumber
 	var transactionsList []transactions.Transaction
 	for _, transaction := range t {
 		transactionsList = append(transactionsList, transactions.Transaction{
-			Sender:        transaction.Sender,
-			Receiver:      transaction.Receiver,
-			TransactionID: transaction.TransactionID,
-			Amount:        transaction.Amount,
-			Type:          transaction.Type,
-
-			PaymentMethod: transaction.PaymentMethod,
-			Status:        transaction.Status,
-			Description:   transaction.Description,
-			Reference:     transaction.Reference,
+			SenderAccountID:   transaction.Sender.ID,
+			ReceiverAccountID: transaction.Receiver.ID,
+			TransactionID:     transaction.TransactionID,
+			Amount:            transaction.Amount,
+			Type:              transaction.Type,
+			PaymentMethod:     transaction.PaymentMethod,
+			Status:            transaction.Status,
+			Description:       transaction.Description,
+			Reference:         transaction.Reference,
 		})
 	}
 	return transactionsList, nil
@@ -109,14 +110,14 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 	}
 
 	t := Transaction{
-		Receiver:      receiverAccount,
-		Amount:        amount,
-		PaymentMethod: paymentMethod,
-		Status:        "Pending",
-		Type:          "Credit",
-		Description:   description,
-		TransactionID: transactionID,
-		Reference:     reference,
+		ReceiverAccountID: receiverAccount.ID,
+		Amount:            amount,
+		PaymentMethod:     paymentMethod,
+		Status:            "Pending",
+		Type:              "Credit",
+		Description:       description,
+		TransactionID:     transactionID,
+		Reference:         reference,
 	}
 
 	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
@@ -139,15 +140,15 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 
 	tx.Commit()
 	return transactions.Transaction{
-		Sender:        t.Sender,
-		Receiver:      t.Receiver,
-		TransactionID: t.TransactionID,
-		Amount:        t.Amount,
-		Type:          t.Type,
-		PaymentMethod: t.PaymentMethod,
-		Status:        t.Status,
-		Description:   t.Description,
-		Reference:     t.Reference,
+		SenderAccountID:   t.Sender.ID,
+		ReceiverAccountID: t.Receiver.ID,
+		TransactionID:     t.TransactionID,
+		Amount:            t.Amount,
+		Type:              t.Type,
+		PaymentMethod:     t.PaymentMethod,
+		Status:            t.Status,
+		Description:       t.Description,
+		Reference:         t.Reference,
 	}, nil
 }
 
@@ -182,14 +183,14 @@ func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, 
 	}
 
 	t := Transaction{
-		Sender:        senderAccount,
-		Amount:        amount,
-		PaymentMethod: paymentMethod,
-		Status:        "Pending",
-		Type:          "Debit",
-		Description:   description,
-		TransactionID: transactionID,
-		Reference:     reference,
+		SenderAccountID: senderAccount.ID,
+		Amount:          amount,
+		PaymentMethod:   paymentMethod,
+		Status:          "Pending",
+		Type:            "Debit",
+		Description:     description,
+		TransactionID:   transactionID,
+		Reference:       reference,
 	}
 
 	// Save transaction in database
@@ -213,15 +214,15 @@ func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, 
 
 	tx.Commit()
 	return transactions.Transaction{
-		Sender:        t.Sender,
-		Receiver:      t.Receiver,
-		TransactionID: t.TransactionID,
-		Amount:        t.Amount,
-		Type:          t.Type,
-		PaymentMethod: t.PaymentMethod,
-		Status:        t.Status,
-		Description:   t.Description,
-		Reference:     t.Reference,
+		SenderAccountID:   t.Sender.ID,
+		ReceiverAccountID: t.Receiver.ID,
+		TransactionID:     t.TransactionID,
+		Amount:            t.Amount,
+		Type:              t.Type,
+		PaymentMethod:     t.PaymentMethod,
+		Status:            t.Status,
+		Description:       t.Description,
+		Reference:         t.Reference,
 	}, nil
 
 }
@@ -271,15 +272,15 @@ func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64,
 
 	// Create a transaction with status "Pending"
 	t := Transaction{
-		Sender:        senderAccount,
-		Receiver:      receiverAccount,
-		Amount:        amount,
-		PaymentMethod: paymentMethod, // or any other required method
-		Status:        "Pending",
-		Type:          "Transfer",
-		Description:   description,
-		TransactionID: transactionID,
-		Reference:     reference,
+		SenderAccountID:   senderAccount.ID,
+		ReceiverAccountID: receiverAccount.ID,
+		Amount:            amount,
+		PaymentMethod:     paymentMethod, // or any other required method
+		Status:            "Pending",
+		Type:              "Transfer",
+		Description:       description,
+		TransactionID:     transactionID,
+		Reference:         reference,
 	}
 
 	// Create a new transaction
@@ -305,14 +306,14 @@ func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64,
 	tx.Commit()
 
 	return transactions.Transaction{
-		Sender:        t.Sender,
-		Receiver:      t.Receiver,
-		TransactionID: t.TransactionID,
-		Amount:        t.Amount,
-		Type:          t.Type,
-		PaymentMethod: t.PaymentMethod,
-		Status:        t.Status,
-		Description:   t.Description,
-		Reference:     t.Reference,
+		SenderAccountID:   t.Sender.ID,
+		ReceiverAccountID: t.Receiver.ID,
+		TransactionID:     t.TransactionID,
+		Amount:            t.Amount,
+		Type:              t.Type,
+		PaymentMethod:     t.PaymentMethod,
+		Status:            t.Status,
+		Description:       t.Description,
+		Reference:         t.Reference,
 	}, nil
 }

@@ -1,21 +1,20 @@
 package transactions
 
 import (
-	"PayWalletEngine/internal/accounts"
 	"context"
 	"log"
 )
 
 type Transaction struct {
-	Sender        accounts.Account `json:"sender"`
-	Receiver      accounts.Account `json:"receiver"`
-	TransactionID int64            `json:"transaction_id"`
-	Type          string           `json:"type"`
-	Amount        float64          `json:"amount"`
-	PaymentMethod string           `json:"payment_method"`
-	Status        string           `json:"status"`
-	Description   string           `json:"description"`
-	Reference     string           `json:"reference"`
+	SenderAccountID   uint    // Foreign key referencing Account.ID for sender
+	ReceiverAccountID uint    // Foreign key referencing Account.ID for receiver
+	TransactionID     int64   `json:"transaction_id"`
+	Type              string  `json:"type"`
+	Amount            float64 `json:"amount"`
+	PaymentMethod     string  `json:"payment_method"`
+	Status            string  `json:"status"`
+	Description       string  `json:"description"`
+	Reference         string  `json:"reference"`
 }
 
 type TransactionStore interface {

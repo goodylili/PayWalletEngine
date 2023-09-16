@@ -1,35 +1,34 @@
 # PayWalletEngine (WIP)
 
-<p align="center">
+<p>
    <a href="http://makeapullrequest.com"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" alt=""></a>
    <a href="https://golang.org"><img src="https://img.shields.io/badge/Made%20with-Go-1f425f.svg" alt="made-with-Go"></a>
    <a href="https://goreportcard.com/report/github.com/goodnessuc/paywalletengine"><img src="https://goreportcard.com/badge/github.com/goodnessuc/paywalletengine" alt="GoReportCard"></a>
    <a href="https://github.com/goodnessuc/paywalletengine"><img src="https://img.shields.io/github/go-mod/go-version/goodnessuc/paywalletengine.svg" alt="Go.mod version"></a>
    <a href="https://github.com/goodnessuc/paywalletengine/blob/master/LICENSE"><img src="https://img.shields.io/github/license/goodnessuc/paywalletengine.svg" alt="LICENSE"></a>
-   <a href="https://github.com/goodnessuc/paywalletengine/releases/"><img src="https://img.shields.io/github/release/goodnessuc/paywalletengine.svg" alt="Latest release"></a>
 </p>
-
 
 ## Introduction
 
-This is a basic MVP version of a bank account system implemented in Go using the hexagonal architecture. It includes features such as JWT authentication, account management, transaction processing, and user management.
+This is a basic MVP version of a bank account system implemented in Go using the hexagonal architecture. It includes
+features such as JWT authentication, account management, transaction processing, and user management.
 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
+    - [Installation](#Installation and Setup)
 - [Usage](#usage)
 - [Testing](#testing)
-- [API Documentation](docs/API.md)
+- [API Documentation](docs/GETTING-STARTED.md)
 - [Technologies and Tools](#technologies-and-tools)
 - [Contributing](#contributing)
 - [License](#license)
 
-
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+These instructions will get you a copy of the project up and running on your local machine for development and testing
+purposes.
 
 ### Prerequisites
 
@@ -94,12 +93,11 @@ make test
 - [JWT](https://jwt.io/) - JSON Web Tokens for authentication
 - [Make](https://www.gnu.org/software/make/) - Build automation tool
 
-
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Contributions are welcome! Feel free to open a pull request right away.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details
 

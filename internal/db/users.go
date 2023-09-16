@@ -10,12 +10,12 @@ import (
 
 type User struct {
 	gorm.Model
-	Account  []Account `gorm:"foreignkey:ID"`
-	Username string    `gorm:"unique;not null"`
-	Email    string    `gorm:"unique;not null"`
-	Password string    `gorm:"not null"`
-	Balance  float64   `gorm:"default:0"`
-	IsActive bool      `gorm:"default:true"`
+	Account  Account `gorm:"foreignKey:ID"`
+	Username string  `gorm:"unique;not null"`
+	Email    string  `gorm:"unique;not null"`
+	Password string  `gorm:"not null"`
+	Balance  float64 `gorm:"default:0"`
+	IsActive bool    `gorm:"default:true"`
 }
 
 func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
