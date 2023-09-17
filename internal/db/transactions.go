@@ -87,8 +87,13 @@ func (d *Database) GetTransactionsFromAccount(ctx context.Context, accountNumber
 
 // CreditAccount credits an account for a transaction
 func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int64, amount float64, description string, paymentMethod string) (transactions.Transaction, error) {
-	// Begin the transaction and generate the ID
 	tx := d.Client.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	transactionID, err := transactions.GenerateTransactionID()
 	if err != nil {
 		tx.Rollback()
@@ -122,7 +127,6 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 		return transactions.Transaction{}, err
 	}
 
-	// Update the receiver's account balance
 	receiverAccount.Balance += amount
 	if err := tx.WithContext(ctx).Save(&receiverAccount).Error; err != nil {
 		tx.Rollback()
@@ -135,7 +139,11 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 		return transactions.Transaction{}, err
 	}
 
-	tx.Commit()
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return transactions.Transaction{}, err
+	}
+
 	return transactions.Transaction{
 		SenderAccountID:   t.Sender.ID,
 		ReceiverAccountID: t.Receiver.ID,
