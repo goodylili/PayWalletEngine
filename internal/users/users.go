@@ -13,7 +13,6 @@ type User struct {
 	Username string             `json:"username"`  // username for the user
 	Email    string             `json:"email"`     // email address for the user
 	Password string             `json:"password"`  // hashed password for the user
-	Balance  float64            `json:"balance"`   // current balance for the user's wallet
 	IsActive bool               `json:"is_active"` // status of the user, true means active
 	Account  []accounts.Account `json:"accounts"`
 }
@@ -42,7 +41,7 @@ func NewService(store UserStore) UserService {
 }
 
 func (u *UserService) CreateUser(ctx context.Context, user *User) error {
-	hashedPassword, err := hashPassword(user.Password)
+	hashedPassword, err := HashPassword(user.Password)
 	if err != nil {
 		log.Printf("Error hashing password: %v", err)
 		return err
@@ -66,7 +65,6 @@ func (u *UserService) GetUserByID(ctx context.Context, id int64) (User, error) {
 }
 
 func (u *UserService) UpdateUser(ctx context.Context, user User) error {
-	// Check if the passwords match using the comparePasswords function
 	if err := u.Store.UpdateUser(ctx, user); err != nil {
 		log.Printf("Error updating user: %v", err)
 		return err
@@ -111,14 +109,6 @@ func (u *UserService) ReadyCheck(ctx context.Context) error {
 }
 
 func (u *UserService) ResetPassword(ctx context.Context, user User) error {
-	// Assuming the password you're passing is the new plain text password
-	// First, we need to hash the new password
-	hashedPassword, err := hashPassword(user.Password)
-	if err != nil {
-		log.Printf("Error hashing password: %v", err)
-		return err
-	}
-	user.Password = hashedPassword
 
 	// Next, we'll call the store's ResetPassword method
 	if err := u.Store.ResetPassword(ctx, user); err != nil {

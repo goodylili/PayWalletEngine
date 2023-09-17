@@ -49,6 +49,7 @@ func (h *Handler) GetAccountByID(writer http.ResponseWriter, request *http.Reque
 	if err := json.NewEncoder(writer).Encode(account); err != nil {
 		log.Panicln(err)
 	}
+
 }
 
 // GetAccountByNumber extracts the number from the URL parameters and then fetches the account with that number from the database using the GetAccountByNumber method of the AccountService interface. If the account is found, it encodes and sends the account as a response.
@@ -81,5 +82,10 @@ func (h *Handler) UpdateAccountDetails(writer http.ResponseWriter, request *http
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	if err := json.NewEncoder(writer).Encode(acct); err != nil {
+		log.Panicln(err)
+	}
+
 	writer.WriteHeader(http.StatusOK)
+
 }

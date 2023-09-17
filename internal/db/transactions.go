@@ -12,15 +12,16 @@ type Transaction struct {
 	gorm.Model
 	SenderAccountID   uint    // Foreign key referencing Account.ID for sender
 	ReceiverAccountID uint    // Foreign key referencing Account.ID for receiver
-	Sender            Account `gorm:"foreignKey:ID"`
-	Receiver          Account `gorm:"foreignKey:ID"`
 	Amount            float64 `gorm:"type:decimal(10,2);not null"`
 	PaymentMethod     string  `gorm:"type:varchar(50);not null"`
 	Type              string  `gorm:"type:varchar(50);not null"` // "credit", "debit", or "transfer"
 	Status            string  `gorm:"type:varchar(50);not null"`
 	Description       string  `gorm:"type:varchar(255)"`
-	TransactionID     int64   `gorm:"type:varchar(100);unique_index"`
-	Reference         string  `gorm:"type:varchar(100);unique_index"`
+	TransactionID     int64   `gorm:"type:varchar(100);uniqueIndex"`
+	Reference         string  `gorm:"type:varchar(100);uniqueIndex"`
+
+	Sender   Account `gorm:"foreignKey:SenderAccountID"`   // Define foreign key for sender
+	Receiver Account `gorm:"foreignKey:ReceiverAccountID"` // Define foreign key for receiver
 }
 
 // GetTransactionByReference retrieves a transaction by its reference
@@ -33,7 +34,6 @@ func (d *Database) GetTransactionByReference(ctx context.Context, reference stri
 	return &transactions.Transaction{
 		SenderAccountID:   t.Sender.ID,
 		ReceiverAccountID: t.Receiver.ID,
-		TransactionID:     t.TransactionID,
 		Amount:            t.Amount,
 		Type:              t.Type,
 		PaymentMethod:     t.PaymentMethod,
@@ -44,16 +44,15 @@ func (d *Database) GetTransactionByReference(ctx context.Context, reference stri
 }
 
 // GetTransactionByTransactionID retrieves a transaction by its ID
-func (d *Database) GetTransactionByTransactionID(ctx context.Context, transactionID int64) (*transactions.Transaction, error) {
+func (d *Database) GetTransactionByTransactionID(ctx context.Context, id int64) (*transactions.Transaction, error) {
 	var t Transaction
-	err := d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).First(&t).Error
+	err := d.Client.WithContext(ctx).Where("id = ?", id).First(&t).Error
 	if err != nil {
 		return nil, err
 	}
 	return &transactions.Transaction{
 		SenderAccountID:   t.Sender.ID,
 		ReceiverAccountID: t.Receiver.ID,
-		TransactionID:     t.TransactionID,
 		Amount:            t.Amount,
 		Type:              t.Type,
 		PaymentMethod:     t.PaymentMethod,
@@ -75,7 +74,6 @@ func (d *Database) GetTransactionsFromAccount(ctx context.Context, accountNumber
 		transactionsList = append(transactionsList, transactions.Transaction{
 			SenderAccountID:   transaction.Sender.ID,
 			ReceiverAccountID: transaction.Receiver.ID,
-			TransactionID:     transaction.TransactionID,
 			Amount:            transaction.Amount,
 			Type:              transaction.Type,
 			PaymentMethod:     transaction.PaymentMethod,
@@ -116,7 +114,6 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 		Status:            "Pending",
 		Type:              "Credit",
 		Description:       description,
-		TransactionID:     transactionID,
 		Reference:         reference,
 	}
 
@@ -142,7 +139,6 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 	return transactions.Transaction{
 		SenderAccountID:   t.Sender.ID,
 		ReceiverAccountID: t.Receiver.ID,
-		TransactionID:     t.TransactionID,
 		Amount:            t.Amount,
 		Type:              t.Type,
 		PaymentMethod:     t.PaymentMethod,
@@ -189,7 +185,6 @@ func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, 
 		Status:          "Pending",
 		Type:            "Debit",
 		Description:     description,
-		TransactionID:   transactionID,
 		Reference:       reference,
 	}
 
@@ -216,7 +211,6 @@ func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, 
 	return transactions.Transaction{
 		SenderAccountID:   t.Sender.ID,
 		ReceiverAccountID: t.Receiver.ID,
-		TransactionID:     t.TransactionID,
 		Amount:            t.Amount,
 		Type:              t.Type,
 		PaymentMethod:     t.PaymentMethod,
@@ -279,7 +273,6 @@ func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64,
 		Status:            "Pending",
 		Type:              "Transfer",
 		Description:       description,
-		TransactionID:     transactionID,
 		Reference:         reference,
 	}
 
@@ -308,7 +301,6 @@ func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64,
 	return transactions.Transaction{
 		SenderAccountID:   t.Sender.ID,
 		ReceiverAccountID: t.Receiver.ID,
-		TransactionID:     t.TransactionID,
 		Amount:            t.Amount,
 		Type:              t.Type,
 		PaymentMethod:     t.PaymentMethod,

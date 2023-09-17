@@ -37,8 +37,8 @@ func (h *Handler) CreateUser(writer http.ResponseWriter, request *http.Request) 
 	}
 }
 
-// GetUser extracts the id from the URL parameters and then fetches the user with that id from the database using the GetUser method of the UserService interface. If the user is found, it encodes and sends the user as a response.
-func (h *Handler) GetUser(writer http.ResponseWriter, request *http.Request) {
+// GetUserByID extracts the id from the URL parameters and then fetches the user with that id from the database using the GetUserByID method of the UserService interface. If the user is found, it encodes and sends the user as a response.
+func (h *Handler) GetUserByID(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
@@ -119,6 +119,10 @@ func (h *Handler) DeactivateUserByID(writer http.ResponseWriter, request *http.R
 		return
 	}
 	writer.WriteHeader(http.StatusNoContent)
+	if err := json.NewEncoder(writer).Encode(map[string]string{"status": "OK"}); err != nil {
+		log.Panicln(err)
+	}
+
 }
 
 func (h *Handler) Ping(writer http.ResponseWriter, request *http.Request) {
