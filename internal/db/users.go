@@ -11,11 +11,11 @@ import (
 
 type User struct {
 	gorm.Model
-	Account  Account `gorm:"foreignKey:ID"`
 	Username string  `gorm:"unique;not null"`
 	Email    string  `gorm:"unique;not null"`
 	Password string  `gorm:"not null"`
 	IsActive bool    `gorm:"default:true"`
+	Account  Account `gorm:"foreignKey:ID;references:ID"`
 }
 
 func (d *Database) CreateUser(ctx context.Context, user *users.User) error {

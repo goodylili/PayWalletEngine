@@ -8,14 +8,14 @@ import (
 
 type Account struct {
 	gorm.Model
-	AccountNumber string        `gorm:"type:varchar(100);uniqueIndex;column:account_number"`
-	AccountType   string        `gorm:"type:varchar(50)"`
-	Balance       float64       `gorm:"type:decimal(10,2)"`
-	Transactions  []Transaction `gorm:"foreignkey:ID"` // Define foreign key //fix thiss
+	AccountNumber string  `gorm:"type:varchar(100);uniqueIndex;column:account_number"`
+	AccountType   string  `gorm:"type:varchar(50)"`
+	Balance       float64 `gorm:"type:decimal(10,2)"`
+	UserID        uint
 }
 
 // CreateAccount creates a new account in the database.
-func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account) error {
+func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account, userID uint) error {
 	accountNumber, err := accounts.GenerateAccountNumber()
 	if err != nil {
 		return err

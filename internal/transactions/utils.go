@@ -1,41 +1,43 @@
 package transactions
 
 import (
-	crypto "crypto/rand"
-	"crypto/sha256"
-	"fmt"
 	"github.com/google/uuid"
-	"math/big"
-	"math/rand"
-	"strings"
-	"time"
 )
 
-// GenerateTransactionID generates a unique 16-digit account number
-func GenerateTransactionID() (int64, error) {
-	rand.Seed(time.Now().UnixNano())
-	randomInt := rand.Int63n(1e16)
-	uid, err := uuid.NewRandomFromReader(crypto.Reader)
-	if err != nil {
-		return 0, err
-	}
-	hash := sha256.Sum256([]byte(fmt.Sprintf("%d%v", randomInt, uid.String())))
-	hashInt := big.NewInt(0)
-	hashInt.SetBytes(hash[:])
-	accountNumber := hashInt.Mod(hashInt, big.NewInt(1e16)).Int64()
+var base62Chars = []byte("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
-	return accountNumber, nil
+func EncodeBase62(data []byte) string {
+	result := make([]byte, 0, len(data)*2)
+	num := uint64(0)
+	bits := uint(0)
+
+	for _, b := range data {
+		num = (num << 8) | uint64(b)
+		bits += 8
+
+		for bits >= 6 {
+			bits -= 6
+			result = append(result, base62Chars[(num>>bits)&63])
+		}
+	}
+
+	if bits > 0 {
+		num <<= 6 - bits
+		result = append(result, base62Chars[num&63])
+	}
+
+	return string(result)
 }
 
-func GenerateTransactionRef(transactionID int64) (string, error) {
-	// Convert the transaction ID to a namespace UUID
-	namespaceUUID := uuid.NewSHA1(uuid.NameSpaceDNS, []byte(fmt.Sprintf("%d", transactionID)))
+func GenerateTransactionRef() (string, error) {
+	// Generate a random UUID
+	u, err := uuid.NewRandom()
+	if err != nil {
+		return "", err
+	}
 
-	// Generate a UUID using the namespace
-	u := uuid.NewSHA1(namespaceUUID, []byte("transaction"))
+	// Encode the UUID into base62
+	encoded := EncodeBase62(u[:])
 
-	// Convert UUID to string and take the first 16 characters
-	ref := strings.ReplaceAll(u.String(), "-", "")[:16]
-
-	return ref, nil
+	return encoded, nil
 }
