@@ -12,6 +12,7 @@ type Account struct {
 	AccountNumber string  `json:"account_number"`
 	AccountType   string  `json:"account_type"`
 	Balance       float64 `json:"balance"`
+	UserID        uint
 }
 
 type AccountStore interface {
@@ -43,6 +44,7 @@ func (s *AccountService) CreateAccount(ctx context.Context, account *Account) er
 }
 
 func (s *AccountService) GetAccountByID(ctx context.Context, accountID int64) (Account, error) {
+
 	account, err := s.Store.GetAccountByID(ctx, accountID)
 	if err != nil {
 		log.Printf("Error fetching account with ID %v: %v", accountID, err)

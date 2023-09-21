@@ -25,15 +25,23 @@ type UserService interface {
 func (h *Handler) CreateUser(writer http.ResponseWriter, request *http.Request) {
 	var u users.User
 	if err := json.NewDecoder(request.Body).Decode(&u); err != nil {
+		http.Error(writer, "Failed to decode request body", http.StatusBadRequest)
+		log.Println("Failed to decode request body:", err)
 		return
 	}
+
 	err := h.Users.CreateUser(request.Context(), &u)
 	if err != nil {
-		log.Println(err)
+		http.Error(writer, "Failed to create user", http.StatusInternalServerError)
+		log.Println("Failed to create user:", err)
 		return
 	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusCreated)
+
 	if err := json.NewEncoder(writer).Encode(u); err != nil {
-		log.Panicln(err)
+		log.Panicln("Failed to encode response:", err)
 	}
 }
 

@@ -14,8 +14,8 @@ type User struct {
 	Username string  `gorm:"unique;not null"`
 	Email    string  `gorm:"unique;not null"`
 	Password string  `gorm:"not null"`
-	IsActive bool    `gorm:"default:true"`
-	Account  Account `gorm:"foreignKey:ID;references:ID"`
+	IsActive bool    `gorm:"default:false"`
+	Account  Account `gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
@@ -23,7 +23,11 @@ func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
 		Username: user.Username,
 		Email:    user.Email,
 		Password: user.Password,
-		IsActive: user.IsActive,
+		IsActive: false,
+		Account: Account{
+			Balance: 0,
+			UserID:  user.ID,
+		},
 	}
 
 	if err := d.Client.WithContext(ctx).Create(dbUser).Error; err != nil {

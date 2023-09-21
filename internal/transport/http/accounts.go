@@ -17,19 +17,29 @@ type AccountService interface {
 	UpdateAccountDetails(context.Context, accounts.Account) error
 }
 
-// CreateAccount decodes an AccountNumber object from the HTTP request body and then tries to create a new account in the database using the CreateAccount method of the AccountService interface. If the account is successfully created, it encodes and sends the created account as a response.
+// CreateAccount decodes an Account object from the HTTP request body and then tries to create a new account in the database using the CreateAccount method of the AccountService interface. If the account is successfully created, it encodes and sends the created account as a response.
 func (h *Handler) CreateAccount(writer http.ResponseWriter, request *http.Request) {
+	// Decode the account from the request body
 	var acct accounts.Account
 	if err := json.NewDecoder(request.Body).Decode(&acct); err != nil {
+		http.Error(writer, "Failed to decode request body", http.StatusBadRequest)
+		log.Println("Failed to decode request body:", err)
 		return
 	}
+
+	// Create the account in the database
 	err := h.Accounts.CreateAccount(request.Context(), &acct)
 	if err != nil {
-		log.Println(err)
+		http.Error(writer, "Failed to create account,  UserID is required to update an account", http.StatusInternalServerError)
 		return
 	}
+
+	// Encode and send the created account as a response
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusCreated) // HTTP status code for successful creation
 	if err := json.NewEncoder(writer).Encode(acct); err != nil {
-		log.Panicln(err)
+		http.Error(writer, "Failed to encode response", http.StatusInternalServerError)
+		log.Panicln("Failed to encode response:", err)
 	}
 }
 
