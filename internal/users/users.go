@@ -22,7 +22,7 @@ type UserStore interface {
 	GetUserByID(context.Context, int64) (User, error)
 	GetByEmail(context.Context, string) (*User, error)
 	GetByUsername(context.Context, string) (*User, error)
-	UpdateUser(context.Context, User) error
+	UpdateUser(context.Context, User, uint) error
 	ResetPassword(context.Context, User) error
 	DeactivateUserByID(context.Context, int64) error
 	PingDatabase(ctx context.Context) error
@@ -64,8 +64,8 @@ func (u *UserService) GetUserByID(ctx context.Context, id int64) (User, error) {
 	return user, nil
 }
 
-func (u *UserService) UpdateUser(ctx context.Context, user User) error {
-	if err := u.Store.UpdateUser(ctx, user); err != nil {
+func (u *UserService) UpdateUser(ctx context.Context, user User, id uint) error {
+	if err := u.Store.UpdateUser(ctx, user, id); err != nil {
 		log.Printf("Error updating user: %v", err)
 		return err
 	}

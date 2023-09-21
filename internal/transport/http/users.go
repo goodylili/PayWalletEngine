@@ -91,24 +91,33 @@ func (h *Handler) GetByUsername(writer http.ResponseWriter, request *http.Reques
 	}
 }
 
-// UpdateUser decodes a User object from the HTTP request body and then updates the user in the database using the UpdateUser method of the UserService interface. If the user is successfully updated, it encodes and sends the updated user as a response.
+// UpdateUser updates a user by ID.
 func (h *Handler) UpdateUser(writer http.ResponseWriter, request *http.Request) {
-	var u users.User
-	// Decode request body
-	if err := json.NewDecoder(request.Body).Decode(&u); err != nil {
+	vars := mux.Vars(request)
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	// Decode the request body to get the updated user information
+	var u users.User
+	if err := json.NewDecoder(request.Body).Decode(&u); err != nil {
+		http.Error(writer, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
 	// Update user
-	err := h.Users.UpdateUser(request.Context(), u)
+	err = h.Users.UpdateUser(request.Context(), u, uint(id))
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		http.Error(writer, "Failed to update user", http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
+
 	// Encode and send response
 	if err := json.NewEncoder(writer).Encode(u); err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		http.Error(writer, "Failed to encode response", http.StatusInternalServerError)
 		log.Panicln(err)
 	}
 }

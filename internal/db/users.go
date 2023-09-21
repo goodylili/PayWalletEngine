@@ -2,7 +2,6 @@ package db
 
 import (
 	"PayWalletEngine/internal/users"
-	"PayWalletEngine/utils"
 	"context"
 	"errors"
 	"gorm.io/gorm"
@@ -76,27 +75,21 @@ func (d *Database) GetByUsername(ctx context.Context, username string) (*users.U
 	}, nil
 }
 
-func (d *Database) UpdateUser(ctx context.Context, user users.User) error {
-	var dbUser User
-
-	// Check if user exists
-	if err := d.Client.WithContext(ctx).Where("id = ?", user.ID).First(&dbUser).Error; err != nil {
+func (d *Database) UpdateUser(ctx context.Context, user users.User, id uint) error {
+	// Check if user exists based on the provided ID
+	var existingUser User
+	if err := d.Client.WithContext(ctx).Where("id = ?", id).First(&existingUser).Error; err != nil {
+		log.Println(err)
 		return err
 	}
 
-	// Check if the passwords match using the comparePasswords function
-	if !utils.ComparePasswords(user.Password, dbUser.Password) {
-		return errors.New("password does not match")
-	}
+	// Update fields of existingUser
+	existingUser.Username = user.Username
+	existingUser.Email = user.Email
+	existingUser.IsActive = user.IsActive
 
-	dbUser = User{
-		Username: user.Username,
-		Email:    user.Email,
-		IsActive: dbUser.IsActive,
-	}
-
-	// if the user exists and passwords match, update the database with the user's new details
-	if err := d.Client.WithContext(ctx).Save(&dbUser).Error; err != nil {
+	// Update the database with the user's new details
+	if err := d.Client.WithContext(ctx).Save(&existingUser).Error; err != nil {
 		return err
 	}
 	return nil
