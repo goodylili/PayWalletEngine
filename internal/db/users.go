@@ -4,6 +4,7 @@ import (
 	"PayWalletEngine/internal/users"
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 	"log"
 )
@@ -13,7 +14,7 @@ type User struct {
 	Username string  `gorm:"unique;not null"`
 	Email    string  `gorm:"unique;not null"`
 	Password string  `gorm:"not null"`
-	IsActive bool    `gorm:"default:false"`
+	IsActive bool    `gorm:"not null"`
 	Account  Account `gorm:"foreignKey:UserID;references:ID"`
 }
 
@@ -46,6 +47,7 @@ func (d *Database) GetUserByID(ctx context.Context, id int64) (users.User, error
 		Username: dbUser.Username,
 		Email:    dbUser.Email,
 		IsActive: dbUser.IsActive,
+		Password: dbUser.Password,
 	}, nil
 }
 
@@ -59,6 +61,7 @@ func (d *Database) GetByEmail(ctx context.Context, email string) (*users.User, e
 		Username: dbUser.Username,
 		Email:    dbUser.Email,
 		IsActive: dbUser.IsActive,
+		Password: dbUser.Password,
 	}, nil
 }
 
@@ -72,39 +75,55 @@ func (d *Database) GetByUsername(ctx context.Context, username string) (*users.U
 		Username: dbUser.Username,
 		Email:    dbUser.Email,
 		IsActive: dbUser.IsActive,
+		Password: dbUser.Password,
 	}, nil
 }
 
 func (d *Database) UpdateUser(ctx context.Context, user users.User, id uint) error {
-	// Check if user exists based on the provided ID
-	var existingUser User
+	// Check if the user exists based on the provided ID
+	var existingUser users.User
 	if err := d.Client.WithContext(ctx).Where("id = ?", id).First(&existingUser).Error; err != nil {
-		log.Println(err)
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("user with ID %d not found", id)
+		}
+		log.Println("Error querying user:", err)
 		return err
 	}
 
-	// Update fields of existingUser
-	existingUser.Username = user.Username
-	existingUser.Email = user.Email
-	existingUser.IsActive = user.IsActive
+	// Create a map of columns and their values that you want to update
+	updateColumns := map[string]interface{}{
+		"username": user.Username,
+		"email":    user.Email,
+	}
 
-	// Update the database with the user's new details
-	if err := d.Client.WithContext(ctx).Save(&existingUser).Error; err != nil {
+	// Update only the specified columns in the database
+	if err := d.Client.WithContext(ctx).Model(&existingUser).Updates(updateColumns).Error; err != nil {
+		log.Println("Error updating user:", err)
 		return err
 	}
+
 	return nil
 }
 
-// DeactivateUserByID sets the user's IsActive status to false based on the provided ID.
-func (d *Database) DeactivateUserByID(ctx context.Context, id int64) error {
-	user := User{}
-	if err := d.Client.WithContext(ctx).Where("id = ?", id).First(&user).Error; err != nil {
-		// Return an error if the user is not found
+func (d *Database) ChangeUserStatus(ctx context.Context, user users.User, id uint) error {
+	// Check if the user exists based on the provided ID
+	var existingUser users.User
+	if err := d.Client.WithContext(ctx).Where("id = ?", id).First(&existingUser).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return fmt.Errorf("user with ID %d not found", id)
+		}
+		log.Println("Error querying user:", err)
 		return err
 	}
-	// Set the user's IsActive status to false
-	user.IsActive = false
-	if err := d.Client.WithContext(ctx).Save(&user).Error; err != nil {
+
+	// Create a map of columns and their values that you want to update
+	updateColumns := map[string]interface{}{
+		"IsActive": user.IsActive,
+	}
+
+	// Update only the specified columns in the database
+	if err := d.Client.WithContext(ctx).Model(&existingUser).Updates(updateColumns).Error; err != nil {
+		log.Println("Error updating user:", err)
 		return err
 	}
 
@@ -136,7 +155,7 @@ func (d *Database) ResetPassword(ctx context.Context, newUser users.User) error 
 
 	// Update user password where username, email match and the user is active
 	result := d.Client.WithContext(ctx).Model(&User{}).
-		Where("username = ? AND email = ? AND is_active = ?", newUser.Username, newUser.Email, true).
+		Where("username = ? AND email = ? AND is_active = ?", newUser.Username, newUser.Email, newUser.IsActive).
 		Updates(map[string]interface{}{"password": hashedPassword})
 
 	// Log the result of the query

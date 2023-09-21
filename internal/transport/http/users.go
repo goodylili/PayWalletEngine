@@ -2,24 +2,12 @@ package http
 
 import (
 	"PayWalletEngine/internal/users"
-	"context"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"strconv"
 )
-
-type UserService interface {
-	CreateUser(context.Context, *users.User) error
-	GetUserByID(context.Context, string) (users.User, error)
-	GetByEmail(context.Context, string) (*users.User, error)
-	GetByUsername(context.Context, string) (*users.User, error)
-	UpdateUser(context.Context, users.User) error
-	DeactivateUser(context.Context, string) error
-	ResetPassword(context.Context, users.User) error
-	Ping(ctx context.Context) error
-}
 
 // CreateUser decodes a User object from the HTTP request body and then tries to create a new user in the database using the CreateUser method of the UserService interface. If the user is successfully created, it encodes and sends the created user as a response.
 func (h *Handler) CreateUser(writer http.ResponseWriter, request *http.Request) {
@@ -122,20 +110,30 @@ func (h *Handler) UpdateUser(writer http.ResponseWriter, request *http.Request) 
 	}
 }
 
-// DeactivateUserByID extracts the id from the URL parameters and then deletes the user with that id from the database using the DeactivateUserByID method of the UserService interface. If the user is successfully deleted, it sends a No Content status code as a response.
-func (h *Handler) DeactivateUserByID(writer http.ResponseWriter, request *http.Request) {
+// ChangeUserStatus extracts the id from the URL parameters and then deletes the user with that id from the database using the ChangeUserStatus method of the UserService interface. If the user is successfully deleted, it sends a No Content status code as a response.
+func (h *Handler) ChangeUserStatus(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	err = h.Users.DeactivateUserByID(request.Context(), id)
+
+	// Decode the request body to get the updated user information
+	var u users.User
+	if err := json.NewDecoder(request.Body).Decode(&u); err != nil {
+		http.Error(writer, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	// Update user
+	err = h.Users.ChangeUserStatus(request.Context(), u, uint(id))
 	if err != nil {
+		http.Error(writer, "Failed to update user", http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
-	writer.WriteHeader(http.StatusNoContent)
+
 	if err := json.NewEncoder(writer).Encode(map[string]string{"status": "OK"}); err != nil {
 		log.Panicln(err)
 	}
@@ -155,23 +153,25 @@ func (h *Handler) Ping(writer http.ResponseWriter, request *http.Request) {
 
 // ResetPassword decodes a User object from the HTTP request body, then attempts to reset the user's password in the database using the ResetPassword method of the UserService interface. If the password is successfully reset, it sends an OK response.
 func (h *Handler) ResetPassword(writer http.ResponseWriter, request *http.Request) {
+
+	// Decode the request body to get the updated user information
 	var u users.User
-	// Decode request body
 	if err := json.NewDecoder(request.Body).Decode(&u); err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		http.Error(writer, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
 	// Reset password
 	err := h.Users.ResetPassword(request.Context(), u)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		log.Println(err)
+
 		return
 	}
 	// Send response
 	writer.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(writer).Encode(map[string]string{"status": "Password reset successful"}); err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		log.Panicln(err)
+
 	}
 }

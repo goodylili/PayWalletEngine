@@ -7,7 +7,7 @@ import (
 )
 
 type Account struct {
-	gorm.Model
+	gorm.Model    `json:"-"`
 	ID            uint    `json:"id"`
 	AccountNumber string  `json:"account_number"`
 	AccountType   string  `json:"account_type"`

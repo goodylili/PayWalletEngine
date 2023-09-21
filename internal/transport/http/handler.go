@@ -68,14 +68,14 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/ready", h.ReadyCheck).Methods("GET")
 
 	// Users Routes
-	h.Router.HandleFunc("/api/v1/user", h.CreateUser).Methods("POST")
+	h.Router.HandleFunc("/api/v1/user/create", h.CreateUser).Methods("POST")
 	h.Router.HandleFunc("/api/v1/users/{id}", h.GetUserByID).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/email/{email}", h.GetByEmail).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/username/{username}", h.GetByUsername).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/{id}", h.UpdateUser).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/users/{id}", h.DeactivateUserByID).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/users/{id}", h.ChangeUserStatus).Methods("PUT")
 	h.Router.HandleFunc("/api/v1/users/ping", h.Ping).Methods("GET")
-	h.Router.HandleFunc("/api/v1/users/reset", h.ResetPassword).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/users/password/reset", h.ResetPassword).Methods("PUT")
 
 	// AccountNumber Routes
 	h.Router.HandleFunc("/api/v1/account", h.CreateAccount).Methods("POST")

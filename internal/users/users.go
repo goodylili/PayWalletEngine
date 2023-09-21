@@ -9,12 +9,12 @@ import (
 
 // User -  a representation of the users of the wallet engine
 type User struct {
-	gorm.Model
-	Username string             `json:"username"`  // username for the user
-	Email    string             `json:"email"`     // email address for the user
-	Password string             `json:"password"`  // hashed password for the user
-	IsActive bool               `json:"is_active"` // status of the user, true means active
-	Account  []accounts.Account `json:"accounts"`
+	gorm.Model `json:"-"`
+	Username   string             `json:"username"`  // username for the user
+	Email      string             `json:"email"`     // email address for the user
+	Password   string             `json:"password"`  // hashed password for the user
+	IsActive   bool               `json:"is_active"` // status of the user, true means active
+	Account    []accounts.Account `json:"accounts"`
 }
 
 type UserStore interface {
@@ -24,7 +24,7 @@ type UserStore interface {
 	GetByUsername(context.Context, string) (*User, error)
 	UpdateUser(context.Context, User, uint) error
 	ResetPassword(context.Context, User) error
-	DeactivateUserByID(context.Context, int64) error
+	ChangeUserStatus(context.Context, User, uint) error
 	PingDatabase(ctx context.Context) error
 }
 
@@ -73,8 +73,8 @@ func (u *UserService) UpdateUser(ctx context.Context, user User, id uint) error 
 	return nil
 }
 
-func (u *UserService) DeactivateUserByID(ctx context.Context, id int64) error {
-	if err := u.Store.DeactivateUserByID(ctx, id); err != nil {
+func (u *UserService) ChangeUserStatus(ctx context.Context, user User, id uint) error {
+	if err := u.Store.ChangeUserStatus(ctx, user, id); err != nil {
 		log.Printf("Error deactivating user with ID %v: %v", id, err)
 		return err
 	}

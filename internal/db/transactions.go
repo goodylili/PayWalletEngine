@@ -9,7 +9,7 @@ import (
 )
 
 type Transaction struct {
-	gorm.Model
+	gorm.Model    `json:"-"`
 	Amount        float64 `gorm:"type:decimal(10,2);not null"`
 	PaymentMethod string  `gorm:"type:varchar(50);not null"`
 	Type          string  `gorm:"type:varchar(50);not null"` // "credit", "debit", or "transfer"
