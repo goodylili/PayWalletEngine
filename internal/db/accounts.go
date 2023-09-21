@@ -4,6 +4,7 @@ import (
 	"PayWalletEngine/internal/accounts"
 	"context"
 	"errors"
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -15,32 +16,52 @@ type Account struct {
 	UserID        uint    `gorm:"column:user_id"`
 }
 
-// CreateAccount updates an existing account in the database.
+// CreateAccount updates an existing account in the database within a transaction.
 func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account) error {
 	if account.UserID == 0 {
-		return errors.New("UserID is required to update an account")
+		return fmt.Errorf("UserID is required to update an account")
 	}
 
-	// Check if an account with the provided UserID already exists
+	// Start a database transaction
+	tx := d.Client.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	// Check if an account with the provided UserID already exists within the transaction
 	var dbAccount Account
-	err := d.Client.WithContext(ctx).Where("user_id = ?", account.UserID).First(&dbAccount).Error
+	err := tx.WithContext(ctx).Where("user_id = ?", account.UserID).First(&dbAccount).Error
 	if err != nil {
+		tx.Rollback() // Rollback the transaction on error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("account with the provided UserID does not exist")
+			return fmt.Errorf("account with the provided UserID does not exist")
 		}
 		return err
 	}
 
-	// Update the existing account
+	// Update the existing account within the transaction
 	dbAccount.AccountType = account.AccountType
+	dbAccount.UserID = account.UserID
 	dbAccount.Balance = account.Balance
 	accountNumber, err := accounts.GenerateAccountNumber()
 	if err != nil {
+		tx.Rollback() // Rollback the transaction on error
 		return err
 	}
 	account.AccountNumber = accountNumber
 
-	return d.Client.WithContext(ctx).Save(&dbAccount).Error
+	// Save the changes to the database within the transaction
+	if err := tx.WithContext(ctx).Save(&dbAccount).Error; err != nil {
+		tx.Rollback() // Rollback the transaction on error
+		return err
+	}
+
+	// Commit the transaction if all operations were successful
+	if err := tx.Commit().Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Account) error {

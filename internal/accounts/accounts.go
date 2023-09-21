@@ -12,7 +12,7 @@ type Account struct {
 	AccountNumber string  `json:"account_number"`
 	AccountType   string  `json:"account_type"`
 	Balance       float64 `json:"balance"`
-	UserID        uint
+	UserID        uint    `json:"user_id"`
 }
 
 type AccountStore interface {

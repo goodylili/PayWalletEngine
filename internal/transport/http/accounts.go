@@ -4,6 +4,7 @@ import (
 	"PayWalletEngine/internal/accounts"
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -28,18 +29,18 @@ func (h *Handler) CreateAccount(writer http.ResponseWriter, request *http.Reques
 	}
 
 	// Create the account in the database
-	err := h.Accounts.CreateAccount(request.Context(), &acct)
-	if err != nil {
-		http.Error(writer, "Failed to create account,  UserID is required to update an account", http.StatusInternalServerError)
+	if err := h.Accounts.CreateAccount(request.Context(), &acct); err != nil {
+		http.Error(writer, fmt.Sprintf("Failed to create account: %v", err), http.StatusInternalServerError)
+		log.Println("Failed to create account:", err)
 		return
 	}
 
 	// Encode and send the created account as a response
 	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusCreated) // HTTP status code for successful creation
+	writer.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(writer).Encode(acct); err != nil {
 		http.Error(writer, "Failed to encode response", http.StatusInternalServerError)
-		log.Panicln("Failed to encode response:", err)
+		log.Println("Failed to encode response:", err)
 	}
 }
 

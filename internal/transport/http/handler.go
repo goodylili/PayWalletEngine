@@ -78,7 +78,7 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/v1/users/password/reset", h.ResetPassword).Methods("PUT")
 
 	// AccountNumber Routes
-	h.Router.HandleFunc("/api/v1/account", h.CreateAccount).Methods("POST")
+	h.Router.HandleFunc("/api/v1/account/create", h.CreateAccount).Methods("POST")
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetAccountByID).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/number/{number}", h.GetAccountByNumber).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.UpdateAccountDetails).Methods("PUT")
