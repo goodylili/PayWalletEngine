@@ -1,6 +1,9 @@
 package http
 
 import (
+	"PayWalletEngine/internal/accounts"
+	"PayWalletEngine/internal/transactions"
+	"PayWalletEngine/internal/users"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
@@ -31,6 +34,80 @@ func (h *Handler) GetTransactionsFromAccount(writer http.ResponseWriter, request
 
 	writer.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(writer).Encode(txns)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// GetAccountByTransactionIDHandler handles the retrieval of the account and transaction by transaction ID.
+func (h *Handler) GetAccountByTransactionIDHandler(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	transactionIDStr := vars["transaction_id"]
+	if transactionIDStr == "" {
+		http.Error(writer, "Transaction ID is required", http.StatusBadRequest)
+		return
+	}
+
+	transactionID, err := strconv.ParseUint(transactionIDStr, 10, 32)
+	if err != nil {
+		http.Error(writer, "Invalid transaction ID format", http.StatusBadRequest)
+		return
+	}
+
+	account, transaction, err := h.Transaction.GetAccountByTransactionID(request.Context(), uint(transactionID))
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		Account     *accounts.Account          `json:"account"`
+		Transaction *transactions.Transactions `json:"transaction"`
+	}{
+		Account:     account,
+		Transaction: transaction,
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(writer).Encode(response)
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
+
+// GetUserAccountAndTransactionByTransactionIDHandler handles the retrieval of the user, account, and transaction by transaction ID.
+func (h *Handler) GetUserAccountAndTransactionByTransactionIDHandler(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	transactionIDStr := vars["transaction_id"]
+	if transactionIDStr == "" {
+		http.Error(writer, "Transaction ID is required", http.StatusBadRequest)
+		return
+	}
+
+	transactionID, err := strconv.ParseUint(transactionIDStr, 10, 32)
+	if err != nil {
+		http.Error(writer, "Invalid transaction ID format", http.StatusBadRequest)
+		return
+	}
+
+	user, account, transaction, err := h.Transaction.GetUserAccountAndTransactionByTransactionID(request.Context(), uint(transactionID))
+	if err != nil {
+		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	response := struct {
+		User        *users.User                `json:"user"`
+		Account     *accounts.Account          `json:"account"`
+		Transaction *transactions.Transactions `json:"transaction"`
+	}{
+		User:        user,
+		Account:     account,
+		Transaction: transaction,
+	}
+
+	writer.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(writer).Encode(response)
 	if err != nil {
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 	}

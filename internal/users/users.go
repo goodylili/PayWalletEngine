@@ -26,6 +26,7 @@ type UserStore interface {
 	ResetPassword(context.Context, User) error
 	ChangeUserStatus(context.Context, User, uint) error
 	PingDatabase(ctx context.Context) error
+	GetAccountsByUserID(ctx context.Context, userID uint) ([]*accounts.Account, error)
 }
 
 // UserService is the blueprint for the user logic
@@ -117,4 +118,14 @@ func (u *UserService) ResetPassword(ctx context.Context, user User) error {
 	}
 
 	return nil
+}
+
+func (u *UserService) GetAccountsByUserID(ctx context.Context, userID uint) ([]*accounts.Account, error) {
+	account, err := u.Store.GetAccountsByUserID(ctx, userID)
+	if err != nil {
+		log.Printf("Error fetching account with userID %v: %v", userID, err)
+		return nil, err
+	}
+
+	return account, nil
 }

@@ -30,3 +30,8 @@ clean:
 	@echo "Cleaning up..."
 	go clean
 	rm $(BINARY_NAME)
+
+push:
+	@echo "Pushing to GitHub..."
+	bash pushag.sh
+

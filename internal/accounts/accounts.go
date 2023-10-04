@@ -1,6 +1,7 @@
 package accounts
 
 import (
+	"PayWalletEngine/internal/users"
 	"context"
 	"gorm.io/gorm"
 	"log"
@@ -20,6 +21,7 @@ type AccountStore interface {
 	GetAccountByID(context.Context, int64) (Account, error)
 	GetAccountByNumber(context.Context, int64) (Account, error)
 	UpdateAccountDetails(context.Context, Account) error
+	GetUserByAccountNumber(context.Context, uint) (*users.User, error)
 }
 
 // AccountService is the blueprint for the account logic
@@ -32,6 +34,17 @@ func NewAccountService(store AccountStore) AccountService {
 	return AccountService{
 		Store: store,
 	}
+}
+
+// GetUserByAccountDetails retrieves a user by their account details
+func (s *AccountService) GetUserByAccountNumber(ctx context.Context, accountNumber uint) (*users.User, error) {
+	user, err := s.Store.GetUserByAccountNumber(ctx, accountNumber)
+	if err != nil {
+		log.Printf("Error fetching user by account details: %v", err)
+		return nil, err
+	}
+
+	return user, nil
 }
 
 func (s *AccountService) CreateAccount(ctx context.Context, account *Account) error {

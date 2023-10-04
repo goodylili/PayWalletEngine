@@ -1,6 +1,7 @@
 package db
 
 import (
+	"PayWalletEngine/internal/accounts"
 	"PayWalletEngine/internal/users"
 	"context"
 	"errors"
@@ -65,6 +66,15 @@ func (d *Database) GetByEmail(ctx context.Context, email string) (*users.User, e
 	}, nil
 }
 
+func (d *Database) GetAccountByUserID(ctx context.Context, userID uint) (*Account, error) {
+	var acct Account
+	err := d.Client.WithContext(ctx).Where("user_id = ?", userID).First(&acct).Error
+	if err != nil {
+		return nil, err
+	}
+	return &acct, nil
+}
+
 func (d *Database) GetByUsername(ctx context.Context, username string) (*users.User, error) {
 	var dbUser User
 	err := d.Client.WithContext(ctx).Where("username = ?", username).First(&dbUser).Error
@@ -83,7 +93,7 @@ func (d *Database) UpdateUser(ctx context.Context, user users.User, id uint) err
 	// Check if the user exists based on the provided ID
 	var existingUser users.User
 	if err := d.Client.WithContext(ctx).Where("id = ?", id).First(&existingUser).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(gorm.ErrRecordNotFound, err) {
 			return fmt.Errorf("user with ID %d not found", id)
 		}
 		log.Println("Error querying user:", err)
@@ -109,7 +119,7 @@ func (d *Database) ChangeUserStatus(ctx context.Context, user users.User, id uin
 	// Check if the user exists based on the provided ID
 	var existingUser users.User
 	if err := d.Client.WithContext(ctx).Where("id = ?", id).First(&existingUser).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if errors.Is(gorm.ErrRecordNotFound, err) {
 			return fmt.Errorf("user with ID %d not found", id)
 		}
 		log.Println("Error querying user:", err)
@@ -171,4 +181,17 @@ func (d *Database) ResetPassword(ctx context.Context, newUser users.User) error 
 	}
 
 	return nil
+}
+
+// GetAccountsByUserID retrieves all accounts associated with a user
+func (d *Database) GetAccountsByUserID(ctx context.Context, userID uint) ([]*accounts.Account, error) {
+	var userAccounts []*accounts.Account
+
+	// Retrieve all accounts associated with the provided userID
+	err := d.Client.WithContext(ctx).Where("user_id = ?", userID).Find(&userAccounts).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return userAccounts, nil
 }

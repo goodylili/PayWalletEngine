@@ -2,6 +2,7 @@ package db
 
 import (
 	"PayWalletEngine/internal/accounts"
+	"PayWalletEngine/internal/users"
 	"context"
 	"errors"
 	"fmt"
@@ -64,6 +65,7 @@ func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account)
 	return nil
 }
 
+// UpdateAccountDetails updates an existing account in the database within a transaction.
 func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Account) error {
 	tx := d.Client.WithContext(ctx).Begin() // Start a new transaction
 
@@ -90,6 +92,7 @@ func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Ac
 	return nil
 }
 
+// GetAccountByID retrieves an account by its ID
 func (d *Database) GetAccountByID(ctx context.Context, id int64) (accounts.Account, error) {
 	var a Account
 	err := d.Client.WithContext(ctx).Where("id = ?", id).First(&a).Error
@@ -105,6 +108,7 @@ func (d *Database) GetAccountByID(ctx context.Context, id int64) (accounts.Accou
 	}, nil
 }
 
+// GetAccountByNumber retrieves an account by its account number
 func (d *Database) GetAccountByNumber(ctx context.Context, accountNumber int64) (accounts.Account, error) {
 	var a Account
 	err := d.Client.WithContext(ctx).Where("account_number = ?", accountNumber).First(&a).Error
@@ -117,5 +121,27 @@ func (d *Database) GetAccountByNumber(ctx context.Context, accountNumber int64) 
 		AccountType:   a.AccountType,
 		Balance:       a.Balance,
 		UserID:        a.UserID,
+	}, nil
+}
+
+// GetUserByAccountNumber retrieves a user by their account details
+func (d *Database) GetUserByAccountNumber(ctx context.Context, accountNumber uint) (*users.User, error) {
+	var acct Account
+	err := d.Client.WithContext(ctx).Where("account_number = ?", accountNumber).First(&acct).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var user User
+	err = d.Client.WithContext(ctx).First(&user, acct.UserID).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &users.User{
+		Username: user.Username,
+		Email:    user.Email,
+		Password: user.Password,
+		IsActive: user.IsActive,
 	}, nil
 }

@@ -5,7 +5,6 @@ import (
 	"PayWalletEngine/internal/db"
 	"PayWalletEngine/internal/transactions"
 	transportHTTP "PayWalletEngine/internal/transport/http"
-	//transportHTTP "PayWalletEngine/internal/transport/http"
 	"PayWalletEngine/internal/users"
 
 	"fmt"
@@ -40,6 +39,7 @@ func Run() error {
 	return nil
 
 }
+
 func main() {
 	fmt.Println("GO REST API Course")
 	if err := Run(); err != nil {

@@ -2,7 +2,6 @@ package http
 
 import (
 	"PayWalletEngine/internal/accounts"
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -10,13 +9,6 @@ import (
 	"net/http"
 	"strconv"
 )
-
-type AccountService interface {
-	CreateAccount(ctx context.Context, account *accounts.Account) error
-	GetAccountByID(context.Context, int64) (accounts.Account, error)
-	GetAccountByNumber(context.Context, int64) (accounts.Account, error)
-	UpdateAccountDetails(context.Context, accounts.Account) error
-}
 
 // CreateAccount decodes an Account object from the HTTP request body and then tries to create a new account in the database using the CreateAccount method of the AccountService interface. If the account is successfully created, it encodes and sends the created account as a response.
 func (h *Handler) CreateAccount(writer http.ResponseWriter, request *http.Request) {
@@ -99,4 +91,33 @@ func (h *Handler) UpdateAccountDetails(writer http.ResponseWriter, request *http
 
 	writer.WriteHeader(http.StatusOK)
 
+}
+
+func (h *Handler) GetUserDetailsByAccountNumber(writer http.ResponseWriter, request *http.Request) {
+	// Get accountNumber from the query parameter
+	accountNumberStr := request.URL.Query().Get("accountNumber")
+	if accountNumberStr == "" {
+		http.Error(writer, "accountNumber is required", http.StatusBadRequest)
+		return
+	}
+
+	// Convert the accountNumber to uint
+	accountNumber, err := strconv.ParseUint(accountNumberStr, 10, 64)
+	if err != nil {
+		http.Error(writer, "Invalid accountNumber format", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch the user details by account number
+	user, err := h.Accounts.GetUserByAccountNumber(request.Context(), uint(accountNumber))
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Encode and send the user details as a response
+	if err := json.NewEncoder(writer).Encode(user); err != nil {
+		log.Panicln(err)
+	}
+	writer.WriteHeader(http.StatusOK)
 }
