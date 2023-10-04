@@ -91,9 +91,18 @@ func (d *Database) UpdateUser(ctx context.Context, user users.User, id uint) err
 	}
 
 	// Create a map of columns and their values that you want to update
-	updateColumns := map[string]interface{}{
-		"username": user.Username,
-		"email":    user.Email,
+	updateColumns := make(map[string]interface{})
+
+	if user.Username != "" {
+		updateColumns["username"] = user.Username
+	}
+	if user.Email != "" {
+		updateColumns["email"] = user.Email
+	}
+
+	// Check if there's anything to update
+	if len(updateColumns) == 0 {
+		return nil // Nothing to update
 	}
 
 	// Update only the specified columns in the database
@@ -150,16 +159,10 @@ func (d *Database) ResetPassword(ctx context.Context, newUser users.User) error 
 		return err
 	}
 
-	// Log the provided username and email
-	log.Printf("Username: %s, Email: %s\n", newUser.Username, newUser.Email)
-
 	// Update user password where username, email match and the user is active
 	result := d.Client.WithContext(ctx).Model(&User{}).
 		Where("username = ? AND email = ? AND is_active = ?", newUser.Username, newUser.Email, newUser.IsActive).
 		Updates(map[string]interface{}{"password": hashedPassword})
-
-	// Log the result of the query
-	log.Printf("RowsAffected: %d, Error: %v\n", result.RowsAffected, result.Error)
 
 	// Check if any rows were affected
 	if result.RowsAffected == 0 {

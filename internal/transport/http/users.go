@@ -51,17 +51,32 @@ func (h *Handler) GetUserByID(writer http.ResponseWriter, request *http.Request)
 	}
 }
 
-// GetByEmail extracts the email from the URL parameters and then fetches the user with that email from the database using the GetByEmail method of the UserService interface. If the user is found, it encodes and sends the user as a response.
 func (h *Handler) GetByEmail(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	email := vars["email"]
+
+	// Check if email is valid
+	if !isValidEmail(email) {
+		http.Error(writer, "Invalid email format", http.StatusBadRequest)
+		return
+	}
+
 	u, err := h.Users.GetByEmail(request.Context(), email)
 	if err != nil {
 		log.Println(err)
+		http.Error(writer, "Failed to fetch user by email", http.StatusInternalServerError)
 		return
 	}
+
+	// Check if user exists
+	if u == nil {
+		http.Error(writer, "User not found", http.StatusNotFound)
+		return
+	}
+
 	if err := json.NewEncoder(writer).Encode(u); err != nil {
-		log.Panicln(err)
+		log.Println("Failed to encode user data: ", err)
+		http.Error(writer, "Failed to process user data", http.StatusInternalServerError)
 	}
 }
 
