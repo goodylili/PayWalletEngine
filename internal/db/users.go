@@ -1,7 +1,6 @@
 package db
 
 import (
-	"PayWalletEngine/internal/accounts"
 	"PayWalletEngine/internal/users"
 	"context"
 	"errors"
@@ -64,15 +63,6 @@ func (d *Database) GetByEmail(ctx context.Context, email string) (*users.User, e
 		IsActive: dbUser.IsActive,
 		Password: dbUser.Password,
 	}, nil
-}
-
-func (d *Database) GetAccountByUserID(ctx context.Context, userID uint) (*Account, error) {
-	var acct Account
-	err := d.Client.WithContext(ctx).Where("user_id = ?", userID).First(&acct).Error
-	if err != nil {
-		return nil, err
-	}
-	return &acct, nil
 }
 
 func (d *Database) GetByUsername(ctx context.Context, username string) (*users.User, error) {
@@ -181,17 +171,4 @@ func (d *Database) ResetPassword(ctx context.Context, newUser users.User) error 
 	}
 
 	return nil
-}
-
-// GetAccountsByUserID retrieves all accounts associated with a user
-func (d *Database) GetAccountsByUserID(ctx context.Context, userID uint) ([]*accounts.Account, error) {
-	var userAccounts []*accounts.Account
-
-	// Retrieve all accounts associated with the provided userID
-	err := d.Client.WithContext(ctx).Where("user_id = ?", userID).Find(&userAccounts).Error
-	if err != nil {
-		return nil, err
-	}
-
-	return userAccounts, nil
 }

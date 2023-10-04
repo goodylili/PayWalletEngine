@@ -145,3 +145,16 @@ func (d *Database) GetUserByAccountNumber(ctx context.Context, accountNumber uin
 		IsActive: user.IsActive,
 	}, nil
 }
+
+// GetAccountsByUserID retrieves all accounts associated with a user
+func (d *Database) GetAccountsByUserID(ctx context.Context, userID uint) ([]*accounts.Account, error) {
+	var userAccounts []*accounts.Account
+
+	// Retrieve all accounts associated with the provided userID
+	err := d.Client.WithContext(ctx).Where("user_id = ?", userID).Find(&userAccounts).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return userAccounts, nil
+}

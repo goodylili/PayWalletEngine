@@ -22,6 +22,7 @@ type AccountStore interface {
 	GetAccountByNumber(context.Context, int64) (Account, error)
 	UpdateAccountDetails(context.Context, Account) error
 	GetUserByAccountNumber(context.Context, uint) (*users.User, error)
+	GetAccountsByUserID(ctx context.Context, userID uint) ([]*Account, error)
 }
 
 // AccountService is the blueprint for the account logic
@@ -36,7 +37,7 @@ func NewAccountService(store AccountStore) AccountService {
 	}
 }
 
-// GetUserByAccountDetails retrieves a user by their account details
+// GetUserByAccountNumber  retrieves a user by their account details
 func (s *AccountService) GetUserByAccountNumber(ctx context.Context, accountNumber uint) (*users.User, error) {
 	user, err := s.Store.GetUserByAccountNumber(ctx, accountNumber)
 	if err != nil {
@@ -83,4 +84,14 @@ func (s *AccountService) UpdateAccountDetails(ctx context.Context, account Accou
 		return err
 	}
 	return nil
+}
+
+func (s *AccountService) GetAccountsByUserID(ctx context.Context, userID uint) ([]*Account, error) {
+	account, err := s.Store.GetAccountsByUserID(ctx, userID)
+	if err != nil {
+		log.Printf("Error fetching account with userID %v: %v", userID, err)
+		return nil, err
+	}
+
+	return account, nil
 }

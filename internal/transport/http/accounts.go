@@ -121,3 +121,32 @@ func (h *Handler) GetUserDetailsByAccountNumber(writer http.ResponseWriter, requ
 	}
 	writer.WriteHeader(http.StatusOK)
 }
+
+func (h *Handler) GetAccountsByUserID(writer http.ResponseWriter, request *http.Request) {
+	// Get userID from the query parameter
+	userIDStr := request.URL.Query().Get("user_id")
+	if userIDStr == "" {
+		http.Error(writer, "userID is required", http.StatusBadRequest)
+		return
+	}
+
+	// Convert the userID to uint
+	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	if err != nil {
+		http.Error(writer, "Invalid userID format", http.StatusBadRequest)
+		return
+	}
+
+	// Fetch the accounts by user ID
+	accounts, err := h.Accounts.GetAccountsByUserID(request.Context(), uint(userID))
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Encode and send the accounts as a response
+	if err := json.NewEncoder(writer).Encode(accounts); err != nil {
+		log.Panicln(err)
+	}
+	writer.WriteHeader(http.StatusOK)
+}

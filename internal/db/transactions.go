@@ -46,7 +46,6 @@ func (d *Database) GetUserAccountAndTransactionByTransactionID(ctx context.Conte
 			Email:    "",
 			Password: "",
 			IsActive: false,
-			Account:  nil,
 		}, &accounts.Account{
 			ID:            acct.ID,
 			AccountNumber: acct.AccountNumber,
