@@ -11,7 +11,7 @@ import (
 
 type Account struct {
 	gorm.Model
-	AccountNumber string  `gorm:"type:varchar(100);uniqueIndex;column:account_number"`
+	AccountNumber uint    `gorm:"type:varchar(100);uniqueIndex;column:account_number"`
 	AccountType   string  `gorm:"type:varchar(50)"`
 	Balance       float64 `gorm:"type:decimal(10,2)"`
 	UserID        uint    `gorm:"column:user_id"`
@@ -51,7 +51,7 @@ func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account)
 		AccountType:   account.AccountType,
 		UserID:        account.UserID,
 		Balance:       account.Balance,
-		AccountNumber: accountNumber, // We'll populate this below
+		AccountNumber: uint(accountNumber), // We'll populate this below
 	}
 
 	// Save the new account to the database
@@ -73,11 +73,19 @@ func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Ac
 		return err
 	}
 
-	// Update account details
-	a.AccountNumber = account.AccountNumber
-	a.AccountType = account.AccountType
-	a.Balance = account.Balance
-	a.UserID = account.UserID
+	// Update account details only if they are non-empty or non-zero
+	if account.AccountNumber != 0 {
+		a.AccountNumber = account.AccountNumber
+	}
+	if account.AccountType != "" {
+		a.AccountType = account.AccountType
+	}
+	if account.Balance != 0 {
+		a.Balance = account.Balance
+	}
+	if account.UserID != 0 {
+		a.UserID = account.UserID
+	}
 
 	err = tx.Save(&a).Error
 	if err != nil {
@@ -90,7 +98,7 @@ func (d *Database) UpdateAccountDetails(ctx context.Context, account accounts.Ac
 }
 
 // GetAccountByID retrieves an account by its ID
-func (d *Database) GetAccountByID(ctx context.Context, id int64) (accounts.Account, error) {
+func (d *Database) GetAccountByID(ctx context.Context, id uint) (accounts.Account, error) {
 	var a Account
 	err := d.Client.WithContext(ctx).Where("id = ?", id).First(&a).Error
 	if err != nil {
@@ -106,7 +114,7 @@ func (d *Database) GetAccountByID(ctx context.Context, id int64) (accounts.Accou
 }
 
 // GetAccountByNumber retrieves an account by its account number
-func (d *Database) GetAccountByNumber(ctx context.Context, accountNumber int64) (accounts.Account, error) {
+func (d *Database) GetAccountByNumber(ctx context.Context, accountNumber uint) (accounts.Account, error) {
 	var a Account
 	err := d.Client.WithContext(ctx).Where("account_number = ?", accountNumber).First(&a).Error
 	if err != nil {
@@ -154,4 +162,33 @@ func (d *Database) GetAccountsByUserID(ctx context.Context, userID uint) ([]*acc
 	}
 
 	return userAccounts, nil
+}
+
+// Helper function to credit an account
+func (d *Database) creditAccountHelper(tx *gorm.DB, ctx context.Context, receiverAccountNumber int64, amount float64) (accounts.Account, error) {
+	var receiverAccount accounts.Account
+	if err := tx.WithContext(ctx).Where("account_number = ?", receiverAccountNumber).First(&receiverAccount).Error; err != nil {
+		return receiverAccount, err
+	}
+	receiverAccount.Balance += amount
+	if err := tx.WithContext(ctx).Save(&receiverAccount).Error; err != nil {
+		return receiverAccount, err
+	}
+	return receiverAccount, nil
+}
+
+// Helper function to debit an account
+func (d *Database) debitAccountHelper(tx *gorm.DB, ctx context.Context, senderAccountNumber int64, amount float64) (accounts.Account, error) {
+	var senderAccount accounts.Account
+	if err := tx.WithContext(ctx).Where("account_number = ?", senderAccountNumber).First(&senderAccount).Error; err != nil {
+		return senderAccount, err
+	}
+	if senderAccount.Balance < amount {
+		return senderAccount, fmt.Errorf("insufficient funds in account")
+	}
+	senderAccount.Balance -= amount
+	if err := tx.WithContext(ctx).Save(&senderAccount).Error; err != nil {
+		return senderAccount, err
+	}
+	return senderAccount, nil
 }

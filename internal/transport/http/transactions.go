@@ -39,18 +39,18 @@ func (h *Handler) GetTransactionsFromAccount(writer http.ResponseWriter, request
 	}
 }
 
-// GetAccountByTransactionIDHandler handles the retrieval of the account and transaction by transaction ID.
+// GetAccountByTransactionIDHandler handles the retrieval of the account and transaction by transaction TransactionID.
 func (h *Handler) GetAccountByTransactionIDHandler(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	transactionIDStr := vars["transaction_id"]
 	if transactionIDStr == "" {
-		http.Error(writer, "Transaction ID is required", http.StatusBadRequest)
+		http.Error(writer, "Transaction TransactionID is required", http.StatusBadRequest)
 		return
 	}
 
 	transactionID, err := strconv.ParseUint(transactionIDStr, 10, 32)
 	if err != nil {
-		http.Error(writer, "Invalid transaction ID format", http.StatusBadRequest)
+		http.Error(writer, "Invalid transaction TransactionID format", http.StatusBadRequest)
 		return
 	}
 
@@ -75,18 +75,18 @@ func (h *Handler) GetAccountByTransactionIDHandler(writer http.ResponseWriter, r
 	}
 }
 
-// GetUserAccountAndTransactionByTransactionIDHandler handles the retrieval of the user, account, and transaction by transaction ID.
+// GetUserAccountAndTransactionByTransactionIDHandler handles the retrieval of the user, account, and transaction by transaction TransactionID.
 func (h *Handler) GetUserAccountAndTransactionByTransactionIDHandler(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	transactionIDStr := vars["transaction_id"]
 	if transactionIDStr == "" {
-		http.Error(writer, "Transaction ID is required", http.StatusBadRequest)
+		http.Error(writer, "Transaction TransactionID is required", http.StatusBadRequest)
 		return
 	}
 
 	transactionID, err := strconv.ParseUint(transactionIDStr, 10, 32)
 	if err != nil {
-		http.Error(writer, "Invalid transaction ID format", http.StatusBadRequest)
+		http.Error(writer, "Invalid transaction TransactionID format", http.StatusBadRequest)
 		return
 	}
 

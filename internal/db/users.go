@@ -11,11 +11,10 @@ import (
 
 type User struct {
 	gorm.Model
-	Username string  `gorm:"unique;not null"`
-	Email    string  `gorm:"unique;not null"`
-	Password string  `gorm:"not null"`
-	IsActive bool    `gorm:"not null"`
-	Account  Account `gorm:"foreignKey:UserID;references:ID"`
+	Username string `gorm:"unique;not null"`
+	Email    string `gorm:"unique;not null"`
+	Password string `gorm:"not null"`
+	IsActive bool   `gorm:"not null"`
 }
 
 func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
@@ -24,10 +23,6 @@ func (d *Database) CreateUser(ctx context.Context, user *users.User) error {
 		Email:    user.Email,
 		Password: user.Password,
 		IsActive: false,
-		Account: Account{
-			Balance: 0,
-			UserID:  user.ID,
-		},
 	}
 
 	if err := d.Client.WithContext(ctx).Create(dbUser).Error; err != nil {
@@ -80,11 +75,11 @@ func (d *Database) GetByUsername(ctx context.Context, username string) (*users.U
 }
 
 func (d *Database) UpdateUser(ctx context.Context, user users.User, id uint) error {
-	// Check if the user exists based on the provided ID
+	// Check if the user exists based on the provided TransactionID
 	var existingUser users.User
 	if err := d.Client.WithContext(ctx).Where("id = ?", id).First(&existingUser).Error; err != nil {
 		if errors.Is(gorm.ErrRecordNotFound, err) {
-			return fmt.Errorf("user with ID %d not found", id)
+			return fmt.Errorf("user with TransactionID %d not found", id)
 		}
 		log.Println("Error querying user:", err)
 		return err
@@ -115,11 +110,11 @@ func (d *Database) UpdateUser(ctx context.Context, user users.User, id uint) err
 }
 
 func (d *Database) ChangeUserStatus(ctx context.Context, user users.User, id uint) error {
-	// Check if the user exists based on the provided ID
+	// Check if the user exists based on the provided TransactionID
 	var existingUser users.User
 	if err := d.Client.WithContext(ctx).Where("id = ?", id).First(&existingUser).Error; err != nil {
 		if errors.Is(gorm.ErrRecordNotFound, err) {
-			return fmt.Errorf("user with ID %d not found", id)
+			return fmt.Errorf("user with TransactionID %d not found", id)
 		}
 		log.Println("Error querying user:", err)
 		return err

@@ -1,8 +1,6 @@
 package transactions
 
-import (
-	"github.com/google/uuid"
-)
+import "github.com/google/uuid"
 
 var base62Chars = []byte("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
 
@@ -17,13 +15,23 @@ func EncodeBase62(data []byte) string {
 
 		for bits >= 6 {
 			bits -= 6
-			result = append(result, base62Chars[(num>>bits)&63])
+			index := (num >> bits) & 63
+			if index < 0 || index >= uint64(len(base62Chars)) {
+				// Just for sanity, this shouldn't happen
+				return "INVALID"
+			}
+			result = append(result, base62Chars[index])
 		}
 	}
 
 	if bits > 0 {
 		num <<= 6 - bits
-		result = append(result, base62Chars[num&63])
+		index := num & 63
+		if index < 0 || index >= uint64(len(base62Chars)) {
+			// Just for sanity, this shouldn't happen
+			return "INVALID"
+		}
+		result = append(result, base62Chars[index])
 	}
 
 	return string(result)

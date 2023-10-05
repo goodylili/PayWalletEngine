@@ -44,7 +44,7 @@ func (h *Handler) GetAccountByID(writer http.ResponseWriter, request *http.Reque
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	account, err := h.Accounts.GetAccountByID(request.Context(), id)
+	account, err := h.Accounts.GetAccountByID(request.Context(), uint(id))
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
@@ -63,7 +63,7 @@ func (h *Handler) GetAccountByNumber(writer http.ResponseWriter, request *http.R
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	account, err := h.Accounts.GetAccountByNumber(request.Context(), number)
+	account, err := h.Accounts.GetAccountByNumber(request.Context(), uint(number))
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
 		return
@@ -94,17 +94,11 @@ func (h *Handler) UpdateAccountDetails(writer http.ResponseWriter, request *http
 }
 
 func (h *Handler) GetUserDetailsByAccountNumber(writer http.ResponseWriter, request *http.Request) {
-	// Get accountNumber from the query parameter
-	accountNumberStr := request.URL.Query().Get("accountNumber")
-	if accountNumberStr == "" {
-		http.Error(writer, "accountNumber is required", http.StatusBadRequest)
-		return
-	}
 
-	// Convert the accountNumber to uint
-	accountNumber, err := strconv.ParseUint(accountNumberStr, 10, 64)
+	vars := mux.Vars(request)
+	accountNumber, err := strconv.ParseInt(vars["account_number"], 10, 64)
 	if err != nil {
-		http.Error(writer, "Invalid accountNumber format", http.StatusBadRequest)
+		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -123,21 +117,13 @@ func (h *Handler) GetUserDetailsByAccountNumber(writer http.ResponseWriter, requ
 }
 
 func (h *Handler) GetAccountsByUserID(writer http.ResponseWriter, request *http.Request) {
-	// Get userID from the query parameter
-	userIDStr := request.URL.Query().Get("user_id")
-	if userIDStr == "" {
-		http.Error(writer, "userID is required", http.StatusBadRequest)
-		return
-	}
-
-	// Convert the userID to uint
-	userID, err := strconv.ParseUint(userIDStr, 10, 64)
+	vars := mux.Vars(request)
+	userID, err := strconv.ParseInt(vars["user_id"], 10, 64)
 	if err != nil {
-		http.Error(writer, "Invalid userID format", http.StatusBadRequest)
+		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// Fetch the accounts by user ID
+	// Fetch the accounts by user TransactionID
 	accounts, err := h.Accounts.GetAccountsByUserID(request.Context(), uint(userID))
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -146,7 +132,7 @@ func (h *Handler) GetAccountsByUserID(writer http.ResponseWriter, request *http.
 
 	// Encode and send the accounts as a response
 	if err := json.NewEncoder(writer).Encode(accounts); err != nil {
-		log.Panicln(err)
+		http.Error(writer, "Failed to encode accounts", http.StatusInternalServerError)
+		return
 	}
-	writer.WriteHeader(http.StatusOK)
 }

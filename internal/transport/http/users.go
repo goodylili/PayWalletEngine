@@ -94,7 +94,7 @@ func (h *Handler) GetByUsername(writer http.ResponseWriter, request *http.Reques
 	}
 }
 
-// UpdateUser updates a user by ID.
+// UpdateUser updates a user by TransactionID.
 func (h *Handler) UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.ParseInt(vars["id"], 10, 64)

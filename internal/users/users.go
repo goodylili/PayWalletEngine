@@ -56,7 +56,7 @@ func (u *UserService) CreateUser(ctx context.Context, user *User) error {
 func (u *UserService) GetUserByID(ctx context.Context, id int64) (User, error) {
 	user, err := u.Store.GetUserByID(ctx, id)
 	if err != nil {
-		log.Printf("Error fetching user with ID %v: %v", id, err)
+		log.Printf("Error fetching user with TransactionID %v: %v", id, err)
 		return user, err
 	}
 	return user, nil
@@ -73,7 +73,7 @@ func (u *UserService) UpdateUser(ctx context.Context, user User, id uint) error 
 
 func (u *UserService) ChangeUserStatus(ctx context.Context, user User, id uint) error {
 	if err := u.Store.ChangeUserStatus(ctx, user, id); err != nil {
-		log.Printf("Error deactivating user with ID %v: %v", id, err)
+		log.Printf("Error deactivating user with TransactionID %v: %v", id, err)
 		return err
 	}
 

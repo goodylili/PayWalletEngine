@@ -5,20 +5,25 @@ import (
 	"PayWalletEngine/internal/transactions"
 	"PayWalletEngine/internal/users"
 	"context"
-	"fmt"
 	"gorm.io/gorm"
+	"time"
 )
 
 type Transactions struct {
-	gorm.Model            `json:"-"`
-	Amount                float64 `gorm:"type:decimal(10,2);not null"`
-	PaymentMethod         string  `gorm:"type:varchar(50);not null"`
-	Type                  string  `gorm:"type:varchar(50);not null"` // "credit", "debit", or "transfer"
-	Status                string  `gorm:"type:varchar(50);not null"`
-	Description           string  `gorm:"type:varchar(255)"`
-	Reference             string  `gorm:"type:varchar(100);uniqueIndex"`
-	SenderAccountNumber   int64   `gorm:"column:sender_account_number"`
-	ReceiverAccountNumber int64   `gorm:"column:receiver_account_number"`
+	TransactionID uint    `gorm:"primarykey"`
+	Amount        float64 `gorm:"type:decimal(10,2);not null"`
+	PaymentMethod string  `gorm:"type:varchar(50);not null"`
+	Type          string  `gorm:"type:varchar(50);not null"`
+	Status        string  `gorm:"type:varchar(50);not null"`
+	Description   string  `gorm:"type:varchar(255)"`
+	Reference     string  `gorm:"type:varchar(100);uniqueIndex"`
+
+	SenderAccountNumber   string `gorm:"type:integer"`
+	ReceiverAccountNumber string `gorm:"type:integer"`
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
 
 func (d *Database) GetUserAccountAndTransactionByTransactionID(ctx context.Context, transactionID uint) (*users.User, *accounts.Account, *transactions.Transactions, error) {
@@ -41,10 +46,9 @@ func (d *Database) GetUserAccountAndTransactionByTransactionID(ctx context.Conte
 	}
 
 	return &users.User{
-			Model:    gorm.Model{},
-			Username: "",
-			Email:    "",
-			Password: "",
+			Username: usr.Username,
+			Email:    usr.Email,
+			Password: usr.Password,
 			IsActive: false,
 		}, &accounts.Account{
 			ID:            acct.ID,
@@ -53,14 +57,14 @@ func (d *Database) GetUserAccountAndTransactionByTransactionID(ctx context.Conte
 			Balance:       acct.Balance,
 			UserID:        acct.UserID,
 		}, &transactions.Transactions{
-			SenderAccountID:   txn.SenderAccountNumber,
-			ReceiverAccountID: txn.ReceiverAccountNumber,
-			Amount:            txn.Amount,
-			Type:              txn.Type,
-			PaymentMethod:     txn.PaymentMethod,
-			Status:            txn.Status,
-			Description:       txn.Description,
-			Reference:         txn.Reference,
+			SenderAccountNumber:   txn.SenderAccountNumber,
+			ReceiverAccountNumber: txn.ReceiverAccountNumber,
+			Amount:                txn.Amount,
+			Type:                  txn.Type,
+			PaymentMethod:         txn.PaymentMethod,
+			Status:                txn.Status,
+			Description:           txn.Description,
+			Reference:             txn.Reference,
 		}, nil
 }
 
@@ -84,14 +88,14 @@ func (d *Database) GetAccountByTransactionID(ctx context.Context, transactionID 
 			Balance:       acct.Balance,
 			UserID:        acct.UserID,
 		}, &transactions.Transactions{
-			SenderAccountID:   txn.SenderAccountNumber,
-			ReceiverAccountID: txn.ReceiverAccountNumber,
-			Amount:            txn.Amount,
-			Type:              txn.Type,
-			PaymentMethod:     txn.PaymentMethod,
-			Status:            txn.Status,
-			Description:       txn.Description,
-			Reference:         txn.Reference,
+			SenderAccountNumber:   txn.SenderAccountNumber,
+			ReceiverAccountNumber: txn.ReceiverAccountNumber,
+			Amount:                txn.Amount,
+			Type:                  txn.Type,
+			PaymentMethod:         txn.PaymentMethod,
+			Status:                txn.Status,
+			Description:           txn.Description,
+			Reference:             txn.Reference,
 		}, nil
 }
 
@@ -103,14 +107,14 @@ func (d *Database) GetTransactionByReference(ctx context.Context, reference stri
 		return nil, err
 	}
 	return &transactions.Transactions{
-		SenderAccountID:   t.SenderAccountNumber,
-		ReceiverAccountID: t.ReceiverAccountNumber,
-		Amount:            t.Amount,
-		Type:              t.Type,
-		PaymentMethod:     t.PaymentMethod,
-		Status:            t.Status,
-		Description:       t.Description,
-		Reference:         t.Reference,
+		SenderAccountNumber:   t.SenderAccountNumber,
+		ReceiverAccountNumber: t.ReceiverAccountNumber,
+		Amount:                t.Amount,
+		Type:                  t.Type,
+		PaymentMethod:         t.PaymentMethod,
+		Status:                t.Status,
+		Description:           t.Description,
+		Reference:             t.Reference,
 	}, nil
 }
 
@@ -124,41 +128,38 @@ func (d *Database) GetTransactionsFromAccount(ctx context.Context, accountNumber
 	var transactionsList []transactions.Transactions
 	for _, transaction := range t {
 		transactionsList = append(transactionsList, transactions.Transactions{
-			SenderAccountID:   transaction.SenderAccountNumber,
-			ReceiverAccountID: transaction.ReceiverAccountNumber,
-			Amount:            transaction.Amount,
-			Type:              transaction.Type,
-			PaymentMethod:     transaction.PaymentMethod,
-			Status:            transaction.Status,
-			Description:       transaction.Description,
-			Reference:         transaction.Reference,
+			SenderAccountNumber:   transaction.SenderAccountNumber,
+			ReceiverAccountNumber: transaction.ReceiverAccountNumber,
+			Amount:                transaction.Amount,
+			Type:                  transaction.Type,
+			PaymentMethod:         transaction.PaymentMethod,
+			Status:                transaction.Status,
+			Description:           transaction.Description,
+			Reference:             transaction.Reference,
 		})
 	}
 	return transactionsList, nil
 }
 
-// CreditAccount credits an account for a transaction
 func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int64, amount float64, description string, paymentMethod string) (transactions.Transactions, error) {
 	reference, err := transactions.GenerateTransactionRef()
 	if err != nil {
 		return transactions.Transactions{}, err
 	}
-
 	tx := d.Client.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
 		}
 	}()
-
-	var receiverAccount accounts.Account
-	if err := tx.WithContext(ctx).Where("account_number = ?", receiverAccountNumber).First(&receiverAccount).Error; err != nil {
+	receiverAccount, err := d.creditAccountHelper(tx, ctx, receiverAccountNumber, amount)
+	if err != nil {
 		tx.Rollback()
 		return transactions.Transactions{}, err
 	}
 
-	t := Transactions{
-		ReceiverAccountNumber: int64(receiverAccount.ID),
+	t := transactions.Transactions{
+		ReceiverAccountNumber: receiverAccount.AccountNumber,
 		Amount:                amount,
 		PaymentMethod:         paymentMethod,
 		Status:                "Pending",
@@ -172,14 +173,7 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 		return transactions.Transactions{}, err
 	}
 
-	receiverAccount.Balance += amount
-	if err := tx.WithContext(ctx).Save(&receiverAccount).Error; err != nil {
-		tx.Rollback()
-		return transactions.Transactions{}, err
-	}
-
-	t.Status = "Completed"
-	if err := tx.WithContext(ctx).Save(&t).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&transactions.Transactions{}).Where("transaction_id = ?", t.TransactionID).Update("Status", "Completed").Error; err != nil {
 		tx.Rollback()
 		return transactions.Transactions{}, err
 	}
@@ -189,161 +183,106 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 		return transactions.Transactions{}, err
 	}
 
-	return transactions.Transactions{
-		SenderAccountID:   t.SenderAccountNumber,
-		ReceiverAccountID: t.ReceiverAccountNumber,
-		Amount:            t.Amount,
-		Type:              t.Type,
-		PaymentMethod:     t.PaymentMethod,
-		Status:            t.Status,
-		Description:       t.Description,
-		Reference:         t.Reference,
-	}, nil
+	return t, nil
 }
 
-// DebitAccount debits the specified account
 func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, amount float64, description string, paymentMethod string) (transactions.Transactions, error) {
-
 	reference, err := transactions.GenerateTransactionRef()
-
 	if err != nil {
 		return transactions.Transactions{}, err
 	}
 
 	tx := d.Client.Begin()
-	// Fetch the sender's account details
-	var senderAccount accounts.Account
-	if err := tx.WithContext(ctx).Where("account_number = ?", senderAccountNumber).First(&senderAccount).Error; err != nil {
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	senderAccount, err := d.debitAccountHelper(tx, ctx, senderAccountNumber, amount)
+	if err != nil {
 		tx.Rollback()
 		return transactions.Transactions{}, err
 	}
 
-	// Check if there are sufficient funds in the sender's account
-	if senderAccount.Balance < amount {
-		tx.Rollback()
-		return transactions.Transactions{}, fmt.Errorf("insufficient funds in account")
+	t := transactions.Transactions{
+		SenderAccountNumber: senderAccount.AccountNumber,
+		Amount:              amount,
+		PaymentMethod:       paymentMethod,
+		Status:              "Pending",
+		Type:                "Debit",
+		Description:         description,
+		Reference:           reference,
 	}
 
-	t := Transactions{
-		ReceiverAccountNumber: int64(senderAccount.ID),
+	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
+		tx.Rollback()
+		return transactions.Transactions{}, err
+	}
+
+	if err := tx.WithContext(ctx).Model(&transactions.Transactions{}).Where("transaction_id = ?", t.TransactionID).Update("Status", "Completed").Error; err != nil {
+		tx.Rollback()
+		return transactions.Transactions{}, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return transactions.Transactions{}, err
+	}
+
+	return t, nil
+}
+
+func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64, receiverAccountNumber int64, amount float64, description string, paymentMethod string) (transactions.Transactions, error) {
+	reference, err := transactions.GenerateTransactionRef()
+	if err != nil {
+		return transactions.Transactions{}, err
+	}
+
+	tx := d.Client.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	senderAccount, err := d.debitAccountHelper(tx, ctx, senderAccountNumber, amount)
+	if err != nil {
+		tx.Rollback()
+		return transactions.Transactions{}, err
+	}
+
+	receiverAccount, err := d.creditAccountHelper(tx, ctx, receiverAccountNumber, amount)
+	if err != nil {
+		tx.Rollback()
+		return transactions.Transactions{}, err
+	}
+
+	t := transactions.Transactions{
+		SenderAccountNumber:   senderAccount.AccountNumber,
+		ReceiverAccountNumber: receiverAccount.AccountNumber,
 		Amount:                amount,
 		PaymentMethod:         paymentMethod,
 		Status:                "Pending",
-		Type:                  "Debit",
+		Type:                  "Transfer",
 		Description:           description,
 		Reference:             reference,
 	}
 
-	// Save transaction in database
 	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
 		tx.Rollback()
 		return transactions.Transactions{}, err
 	}
 
-	// Deduct the amount from the sender's account balance
-	senderAccount.Balance -= amount
-	if err := tx.WithContext(ctx).Save(&senderAccount).Error; err != nil {
+	if err := tx.WithContext(ctx).Model(&transactions.Transactions{}).Where("transaction_id = ?", t.TransactionID).Update("Status", "Completed").Error; err != nil {
 		tx.Rollback()
 		return transactions.Transactions{}, err
 	}
 
-	t.Status = "Completed"
-	if err := tx.WithContext(ctx).Save(&t).Error; err != nil {
+	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return transactions.Transactions{}, err
 	}
 
-	tx.Commit()
-	return transactions.Transactions{
-		SenderAccountID:   t.SenderAccountNumber,
-		ReceiverAccountID: t.ReceiverAccountNumber,
-		Amount:            t.Amount,
-		Type:              t.Type,
-		PaymentMethod:     t.PaymentMethod,
-		Status:            t.Status,
-		Description:       t.Description,
-		Reference:         t.Reference,
-	}, nil
-
-}
-
-// TransferFunds transfers funds by crediting and debiting specified users
-func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64, receiverAccountNumber int64, amount float64, description string, paymentMethod string) (transactions.Transactions, error) {
-	// Begin transactions and generate ID and reference
-	tx := d.Client.Begin()
-
-	reference, err := transactions.GenerateTransactionRef()
-	if err != nil {
-		tx.Rollback()
-		return transactions.Transactions{}, err
-	}
-
-	// Fetch the sender's account details
-	var senderAccount accounts.Account
-	if err := tx.WithContext(ctx).Where("account_number = ?", senderAccountNumber).First(&senderAccount).Error; err != nil {
-		tx.Rollback()
-		return transactions.Transactions{}, err
-	}
-
-	// Check if there are sufficient funds in the sender's account
-	if senderAccount.Balance < amount {
-		tx.Rollback()
-		return transactions.Transactions{}, fmt.Errorf("insufficient funds in account")
-	}
-
-	// Debit the sender's account
-	senderAccount.Balance -= amount
-	if err := tx.WithContext(ctx).Save(&senderAccount).Error; err != nil {
-		tx.Rollback()
-		return transactions.Transactions{}, err
-	}
-	// Fetch the receiver's account details
-	var receiverAccount accounts.Account
-	if err := tx.WithContext(ctx).Where("account_number = ?", receiverAccountNumber).First(&receiverAccount).Error; err != nil {
-		tx.Rollback()
-		return transactions.Transactions{}, err
-	}
-
-	// Create a transaction with status "Pending"
-	t := Transactions{
-		Amount:        amount,
-		PaymentMethod: paymentMethod, // or any other required method
-		Status:        "Pending",
-		Type:          "Transfer",
-		Description:   description,
-		Reference:     reference,
-	}
-
-	// Create a new transaction
-	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
-		tx.Rollback()
-		return transactions.Transactions{}, err
-	}
-
-	// Credit the receiver's account
-	receiverAccount.Balance += amount
-	if err := tx.WithContext(ctx).Save(&receiverAccount).Error; err != nil {
-		tx.Rollback()
-		return transactions.Transactions{}, err
-	}
-
-	// Update the transaction status to "Completed"
-	t.Status = "Completed"
-	if err := tx.WithContext(ctx).Save(&t).Error; err != nil {
-		tx.Rollback()
-		return transactions.Transactions{}, err
-	}
-
-	tx.Commit()
-
-	return transactions.Transactions{
-		SenderAccountID:   t.SenderAccountNumber,
-		ReceiverAccountID: t.ReceiverAccountNumber,
-		Amount:            t.Amount,
-		Type:              t.Type,
-		PaymentMethod:     t.PaymentMethod,
-		Status:            t.Status,
-		Description:       t.Description,
-		Reference:         t.Reference,
-	}, nil
+	return t, nil
 }

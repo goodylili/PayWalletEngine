@@ -81,8 +81,9 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/v1/account/create", h.CreateAccount).Methods("POST")
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetAccountByID).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/{id}/update", h.UpdateAccountDetails).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/accounts/{id}/user", h.GetUserDetailsByAccountNumber).Methods("GET")
+	h.Router.HandleFunc("/api/v1/accounts/{account_number}/user", h.GetUserDetailsByAccountNumber).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/number/{number}", h.GetAccountByNumber).Methods("GET")
+	h.Router.HandleFunc("/api/v1/accounts/user/{user_id}", h.GetAccountsByUserID).Methods("GET")
 
 	// Transactions Routes
 	h.Router.HandleFunc("/api/v1/transactions/account/{account_number}", h.GetTransactionsFromAccount).Methods("GET")
