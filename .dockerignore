@@ -1,0 +1,12 @@
+.idea
+##
+## Specific to .dockerignore
+##
+
+.git/
+Dockerfile
+
+.env
+
+
+
