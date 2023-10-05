@@ -38,4 +38,4 @@ volumes:
 
 networks:
   fullstack:
-    driver: bridge# Build stage
+    driver: bridge
