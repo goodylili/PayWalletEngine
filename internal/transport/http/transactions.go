@@ -39,7 +39,7 @@ func (h *Handler) GetTransactionsFromAccount(writer http.ResponseWriter, request
 	}
 }
 
-// GetAccountByTransactionIDHandler handles the retrieval of the account and transaction by transaction TransactionID.
+// GetAccountByTransaction Handler handles the retrieval of the account and transaction by transaction TransactionID.
 func (h *Handler) GetAccountByTransactionIDHandler(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	transactionIDStr := vars["transaction_id"]

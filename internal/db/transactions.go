@@ -18,8 +18,8 @@ type Transactions struct {
 	Description   string  `gorm:"type:varchar(255)"`
 	Reference     string  `gorm:"type:varchar(100);uniqueIndex"`
 
-	SenderAccountNumber   string `gorm:"type:integer"`
-	ReceiverAccountNumber string `gorm:"type:integer"`
+	SenderAccountNumber   uint `gorm:"type:integer"`
+	ReceiverAccountNumber uint `gorm:"type:integer"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

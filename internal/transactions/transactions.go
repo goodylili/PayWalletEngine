@@ -15,8 +15,8 @@ type Transactions struct {
 	Status                string  `json:"status"`
 	Description           string  `json:"description"`
 	Reference             string  `json:"reference"`
-	SenderAccountNumber   string  `json:"sender_account_number"`
-	ReceiverAccountNumber string  `json:"receiver_account_number"`
+	SenderAccountNumber   uint    `json:"sender_account_number"`
+	ReceiverAccountNumber uint    `json:"receiver_account_number"`
 }
 
 type TransactionStore interface {
