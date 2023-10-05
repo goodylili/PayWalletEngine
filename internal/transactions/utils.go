@@ -1,51 +1,36 @@
 package transactions
 
-import "github.com/google/uuid"
+import (
+	"fmt"
+	"math/rand"
+	"sync"
+	"time"
+)
 
-var base62Chars = []byte("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")
+var (
+	sequence     int64
+	sequenceLock sync.Mutex
+)
 
-func EncodeBase62(data []byte) string {
-	result := make([]byte, 0, len(data)*2)
-	num := uint64(0)
-	bits := uint(0)
-
-	for _, b := range data {
-		num = (num << 8) | uint64(b)
-		bits += 8
-
-		for bits >= 6 {
-			bits -= 6
-			index := (num >> bits) & 63
-			if index < 0 || index >= uint64(len(base62Chars)) {
-				// Just for sanity, this shouldn't happen
-				return "INVALID"
-			}
-			result = append(result, base62Chars[index])
-		}
-	}
-
-	if bits > 0 {
-		num <<= 6 - bits
-		index := num & 63
-		if index < 0 || index >= uint64(len(base62Chars)) {
-			// Just for sanity, this shouldn't happen
-			return "INVALID"
-		}
-		result = append(result, base62Chars[index])
-	}
-
-	return string(result)
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
 
+// GenerateTransactionRef generates a unique transaction reference.
 func GenerateTransactionRef() (string, error) {
-	// Generate a random UUID
-	u, err := uuid.NewRandom()
-	if err != nil {
-		return "", err
-	}
+	now := time.Now()
 
-	// Encode the UUID into base62
-	encoded := EncodeBase62(u[:])
+	// Lock to safely increment the sequence number
+	sequenceLock.Lock()
+	sequence++
+	sequenceLock.Unlock()
 
-	return encoded, nil
+	// Construct the reference using the timestamp, a random number, and the sequence
+	// Format: YYYYMMDDHHMMSSmmm-RRRR-SSS
+	// YYYYMMDDHHMMSSmmm: Year, Month, Day, Hour, Minute, Second, Millisecond
+	// RRRR: Random 4 digits
+	// SSS: Sequence number (can be increased in size if needed)
+	reference := fmt.Sprintf("%s-%04d-%03d", now.Format("20060102150405.999"), rand.Intn(9999), sequence%1000)
+
+	return reference, nil
 }

@@ -5,30 +5,31 @@ import (
 	"PayWalletEngine/internal/transactions"
 	"PayWalletEngine/internal/users"
 	"context"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"time"
 )
 
 type Transactions struct {
-	TransactionID uint    `gorm:"primarykey"`
-	Amount        float64 `gorm:"type:decimal(10,2);not null"`
-	PaymentMethod string  `gorm:"type:varchar(50);not null"`
-	Type          string  `gorm:"type:varchar(50);not null"`
-	Status        string  `gorm:"type:varchar(50);not null"`
-	Description   string  `gorm:"type:varchar(255)"`
-	Reference     string  `gorm:"type:varchar(100);uniqueIndex"`
-
-	SenderAccountNumber   uint `gorm:"type:integer"`
-	ReceiverAccountNumber uint `gorm:"type:integer"`
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	TransactionID         uuid.UUID `gorm:"primarykey;autoIncrement"`
+	Amount                float64   `gorm:"type:decimal(10,2);not null"`
+	PaymentMethod         string    `gorm:"type:varchar(50);not null"`
+	Type                  string    `gorm:"type:varchar(50);not null"`
+	Status                string    `gorm:"type:varchar(50);not null"`
+	Description           string    `gorm:"type:varchar(255)"`
+	Reference             string    `gorm:"type:varchar(100);uniqueIndex"`
+	SenderAccountNumber   int64     `gorm:"type:bigint;column:sender_account_number"`
+	ReceiverAccountNumber int64     `gorm:"type:bigint;column:receiver_account_number"`
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+	DeletedAt             gorm.DeletedAt `gorm:"index"`
 }
 
-func (d *Database) GetUserAccountAndTransactionByTransactionID(ctx context.Context, transactionID uint) (*users.User, *accounts.Account, *transactions.Transactions, error) {
+func (d *Database) GetUserAccountAndTransactionByTransactionID(ctx context.Context, transactionID string) (*users.User, *accounts.Account, *transactions.Transactions, error) {
 	var txn Transactions
-	err := d.Client.WithContext(ctx).First(&txn, transactionID).Error
+
+	// Fixed the query for retrieving the transaction by its ID
+	err := d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).First(&txn).Error
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -65,12 +66,13 @@ func (d *Database) GetUserAccountAndTransactionByTransactionID(ctx context.Conte
 			Status:                txn.Status,
 			Description:           txn.Description,
 			Reference:             txn.Reference,
+			TransactionID:         txn.TransactionID,
 		}, nil
 }
 
-func (d *Database) GetAccountByTransactionID(ctx context.Context, transactionID uint) (*accounts.Account, *transactions.Transactions, error) {
+func (d *Database) GetAccountandTransactionByTransactionID(ctx context.Context, transactionID string) (*accounts.Account, *transactions.Transactions, error) {
 	var txn Transactions
-	err := d.Client.WithContext(ctx).First(&txn, transactionID).Error
+	err := d.Client.WithContext(ctx).Where("transaction_id = ?", transactionID).First(&txn).Error
 	if err != nil {
 		return nil, nil, err
 	}
@@ -96,6 +98,7 @@ func (d *Database) GetAccountByTransactionID(ctx context.Context, transactionID 
 			Status:                txn.Status,
 			Description:           txn.Description,
 			Reference:             txn.Reference,
+			TransactionID:         txn.TransactionID, // Assuming TransactionID is a field in your Transactions struct
 		}, nil
 }
 
@@ -115,6 +118,7 @@ func (d *Database) GetTransactionByReference(ctx context.Context, reference stri
 		Status:                t.Status,
 		Description:           t.Description,
 		Reference:             t.Reference,
+		TransactionID:         t.TransactionID,
 	}, nil
 }
 
@@ -136,6 +140,7 @@ func (d *Database) GetTransactionsFromAccount(ctx context.Context, accountNumber
 			Status:                transaction.Status,
 			Description:           transaction.Description,
 			Reference:             transaction.Reference,
+			TransactionID:         transaction.TransactionID,
 		})
 	}
 	return transactionsList, nil
@@ -166,6 +171,7 @@ func (d *Database) CreditAccount(ctx context.Context, receiverAccountNumber int6
 		Type:                  "Credit",
 		Description:           description,
 		Reference:             reference,
+		TransactionID:         uuid.New(),
 	}
 
 	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
@@ -213,6 +219,7 @@ func (d *Database) DebitAccount(ctx context.Context, senderAccountNumber int64, 
 		Type:                "Debit",
 		Description:         description,
 		Reference:           reference,
+		TransactionID:       uuid.New(),
 	}
 
 	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {
@@ -267,6 +274,7 @@ func (d *Database) TransferFunds(ctx context.Context, senderAccountNumber int64,
 		Type:                  "Transfer",
 		Description:           description,
 		Reference:             reference,
+		TransactionID:         uuid.New(),
 	}
 
 	if err := tx.WithContext(ctx).Create(&t).Error; err != nil {

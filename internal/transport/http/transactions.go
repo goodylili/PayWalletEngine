@@ -39,22 +39,16 @@ func (h *Handler) GetTransactionsFromAccount(writer http.ResponseWriter, request
 	}
 }
 
-// GetAccountByTransaction Handler handles the retrieval of the account and transaction by transaction TransactionID.
-func (h *Handler) GetAccountByTransactionIDHandler(writer http.ResponseWriter, request *http.Request) {
+// GetAccountByTransactionID handles the retrieval of the account and transaction by transaction TransactionID.
+func (h *Handler) GetAccountByTransactionID(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	transactionIDStr := vars["transaction_id"]
-	if transactionIDStr == "" {
+	transactionID := vars["transaction_id"]
+	if transactionID == "" {
 		http.Error(writer, "Transaction TransactionID is required", http.StatusBadRequest)
 		return
 	}
 
-	transactionID, err := strconv.ParseUint(transactionIDStr, 10, 32)
-	if err != nil {
-		http.Error(writer, "Invalid transaction TransactionID format", http.StatusBadRequest)
-		return
-	}
-
-	account, transaction, err := h.Transaction.GetAccountByTransactionID(request.Context(), uint(transactionID))
+	account, transaction, err := h.Transaction.GetAccountByTransactionID(request.Context(), transactionID)
 	if err != nil {
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -75,8 +69,8 @@ func (h *Handler) GetAccountByTransactionIDHandler(writer http.ResponseWriter, r
 	}
 }
 
-// GetUserAccountAndTransactionByTransactionIDHandler handles the retrieval of the user, account, and transaction by transaction TransactionID.
-func (h *Handler) GetUserAccountAndTransactionByTransactionIDHandler(writer http.ResponseWriter, request *http.Request) {
+// GetUserAccountAndTransactionByTransactionID handles the retrieval of the user, account, and transaction by transaction TransactionID.
+func (h *Handler) GetUserAccountAndTransactionByTransactionID(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	transactionIDStr := vars["transaction_id"]
 	if transactionIDStr == "" {
@@ -84,13 +78,7 @@ func (h *Handler) GetUserAccountAndTransactionByTransactionIDHandler(writer http
 		return
 	}
 
-	transactionID, err := strconv.ParseUint(transactionIDStr, 10, 32)
-	if err != nil {
-		http.Error(writer, "Invalid transaction TransactionID format", http.StatusBadRequest)
-		return
-	}
-
-	user, account, transaction, err := h.Transaction.GetUserAccountAndTransactionByTransactionID(request.Context(), uint(transactionID))
+	user, account, transaction, err := h.Transaction.GetUserAccountAndTransactionByTransactionID(request.Context(), transactionIDStr)
 	if err != nil {
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -116,19 +104,13 @@ func (h *Handler) GetUserAccountAndTransactionByTransactionIDHandler(writer http
 // GetTransactionByReference handles the retrieval of a single transaction by its reference number.
 func (h *Handler) GetTransactionByReference(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	stringReference := vars["transaction_reference"]
-	if stringReference == "" {
+	reference := vars["transaction_reference"]
+	if reference == "" {
 		http.Error(writer, "Reference number is required", http.StatusBadRequest)
 		return
 	}
 
-	reference, err := strconv.ParseInt(stringReference, 10, 64)
-	if err != nil {
-		http.Error(writer, "Invalid reference number format", http.StatusBadRequest)
-		return
-	}
-
-	txn, err := h.Transaction.GetTransactionByReference(request.Context(), strconv.FormatInt(reference, 10))
+	txn, err := h.Transaction.GetTransactionByReference(request.Context(), reference)
 	if err != nil {
 		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
 		return

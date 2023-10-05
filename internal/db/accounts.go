@@ -11,7 +11,7 @@ import (
 
 type Account struct {
 	gorm.Model
-	AccountNumber uint    `gorm:"type:varchar(100);uniqueIndex;column:account_number"`
+	AccountNumber int64   `gorm:"type:varchar(100);uniqueIndex;column:account_number"`
 	AccountType   string  `gorm:"type:varchar(50)"`
 	Balance       float64 `gorm:"type:decimal(10,2)"`
 	UserID        uint    `gorm:"column:user_id"`
@@ -51,7 +51,7 @@ func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account)
 		AccountType:   account.AccountType,
 		UserID:        account.UserID,
 		Balance:       account.Balance,
-		AccountNumber: uint(accountNumber), // We'll populate this below
+		AccountNumber: accountNumber, // We'll populate this below
 	}
 
 	// Save the new account to the database

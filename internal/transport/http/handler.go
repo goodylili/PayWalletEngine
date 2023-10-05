@@ -91,8 +91,8 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/v1/transactions/credit", h.CreditAccount).Methods("POST")
 	h.Router.HandleFunc("/api/v1/transactions/debit", h.DebitAccount).Methods("POST")
 	h.Router.HandleFunc("/api/v1/transactions/transfer", h.TransferFunds).Methods("POST")
-	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}/user-account", h.GetUserAccountAndTransactionByTransactionIDHandler).Methods("GET")
-	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}/account", h.GetAccountByTransactionIDHandler).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}/user-account", h.GetUserAccountAndTransactionByTransactionID).Methods("GET")
+	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}/account", h.GetAccountByTransactionID).Methods("GET")
 }
 
 func (h *Handler) AliveCheck(writer http.ResponseWriter, request *http.Request) {
