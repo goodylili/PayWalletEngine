@@ -70,20 +70,19 @@ func (h *Handler) mapRoutes() {
 	// Users Routes
 	h.Router.HandleFunc("/api/v1/user/create", h.CreateUser).Methods("POST")
 	h.Router.HandleFunc("/api/v1/users/{id}", h.GetUserByID).Methods("GET")
+	h.Router.HandleFunc("/api/v1/users/{id}/update", h.UpdateUser).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/users/{id}/status", h.ChangeUserStatus).Methods("PUT")
 	h.Router.HandleFunc("/api/v1/users/email/{email}", h.GetByEmail).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/username/{username}", h.GetByUsername).Methods("GET")
-	h.Router.HandleFunc("/api/v1/users/{id}", h.UpdateUser).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/users/{id}", h.ChangeUserStatus).Methods("PUT")
 	h.Router.HandleFunc("/api/v1/users/ping", h.Ping).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/password/reset", h.ResetPassword).Methods("PUT")
 
-	// Account Routes
+	// AccountNumber Routes
 	h.Router.HandleFunc("/api/v1/account/create", h.CreateAccount).Methods("POST")
 	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetAccountByID).Methods("GET")
+	h.Router.HandleFunc("/api/v1/accounts/{id}/update", h.UpdateAccountDetails).Methods("PUT")
+	h.Router.HandleFunc("/api/v1/accounts/{id}/user", h.GetUserDetailsByAccountNumber).Methods("GET")
 	h.Router.HandleFunc("/api/v1/accounts/number/{number}", h.GetAccountByNumber).Methods("GET")
-	h.Router.HandleFunc("/api/v1/accounts/{id}", h.UpdateAccountDetails).Methods("PUT")
-	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetUserDetailsByAccountNumber).Methods("GET")
-	h.Router.HandleFunc("/api/v1/accounts/{id}", h.GetAccountsByUserID).Methods("PUT")
 
 	// Transactions Routes
 	h.Router.HandleFunc("/api/v1/transactions/account/{account_number}", h.GetTransactionsFromAccount).Methods("GET")
@@ -93,7 +92,6 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/api/v1/transactions/transfer", h.TransferFunds).Methods("POST")
 	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}/user-account", h.GetUserAccountAndTransactionByTransactionIDHandler).Methods("GET")
 	h.Router.HandleFunc("/api/v1/transactions/{transaction_id}/account", h.GetAccountByTransactionIDHandler).Methods("GET")
-
 }
 
 func (h *Handler) AliveCheck(writer http.ResponseWriter, request *http.Request) {

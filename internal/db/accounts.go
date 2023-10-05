@@ -17,48 +17,45 @@ type Account struct {
 	UserID        uint    `gorm:"column:user_id"`
 }
 
-// CreateAccount updates an existing account in the database within a transaction.
+// CreateAccount creates a new account in the database for the provided user.
 func (d *Database) CreateAccount(ctx context.Context, account *accounts.Account) error {
 	if account.UserID == 0 {
-		return fmt.Errorf("UserID is required to update an account")
+		return fmt.Errorf("UserID is required to create an account")
 	}
 
-	// Start a database transaction
-	tx := d.Client.Begin()
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	// Check if an account with the provided UserID already exists within the transaction
-	var dbAccount Account
-	err := tx.WithContext(ctx).Where("user_id = ?", account.UserID).First(&dbAccount).Error
+	// Check if a user with the provided UserID exists
+	var user User
+	err := d.Client.WithContext(ctx).Where("id = ?", account.UserID).First(&user).Error
 	if err != nil {
-		tx.Rollback() // Rollback the transaction on error
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return fmt.Errorf("account with the provided UserID does not exist")
+			return fmt.Errorf("user with the provided UserID does not exist")
 		}
 		return err
 	}
 
-	// Update the existing account within the transaction
-	dbAccount.AccountType = account.AccountType
-	dbAccount.UserID = account.UserID
-	dbAccount.Balance = account.Balance
+	// Check if an account for the given UserID already exists
+	var existingAccount Account
+	err = d.Client.WithContext(ctx).Where("user_id = ?", account.UserID).First(&existingAccount).Error
+	if err == nil {
+		return fmt.Errorf("account with the provided UserID already exists")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
 	accountNumber, err := accounts.GenerateAccountNumber()
 	if err != nil {
-		tx.Rollback() // Rollback the transaction on error
-		return err
-	}
-	account.AccountNumber = accountNumber
-
-	// Save the changes to the database within the transaction
-	if err := tx.WithContext(ctx).Save(&dbAccount).Error; err != nil {
-		tx.Rollback() // Rollback the transaction on error
 		return err
 	}
 
-	// Commit the transaction if all operations were successful
-	if err := tx.Commit().Error; err != nil {
+	// If account doesn't exist, proceed to create
+	newAccount := Account{
+		AccountType:   account.AccountType,
+		UserID:        account.UserID,
+		Balance:       account.Balance,
+		AccountNumber: accountNumber, // We'll populate this below
+	}
+
+	// Save the new account to the database
+	if err := d.Client.WithContext(ctx).Create(&newAccount).Error; err != nil {
 		return err
 	}
 
