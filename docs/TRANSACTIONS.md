@@ -5,8 +5,6 @@
 The Transactions API provides functionalities for executing and retrieving transactions within the platform. This
 includes credit, debit, and fund transfers as well as retrieving transactions based on various parameters.
 
----
-
 ## Index
 
 - **[Endpoints](#endpoints)**
@@ -18,7 +16,6 @@ includes credit, debit, and fund transfers as well as retrieving transactions ba
     - [Get User, Account and Transaction by Transaction ID](#6-get-user-account-and-transaction-by-transaction-id)
     - [Get Account by Transaction ID](#7-get-account-by-transaction-id)
 
----
 
 ### **Base URL**: `/api/v1/transactions`
 

@@ -1,13 +1,11 @@
 # **Users API Documentation**
 
----
-
 ## **Overview**
 
 The Users API allows the management of user accounts within the platform. It provides endpoints for creating,
 retrieving, updating, and managing user accounts.
 
----
+
 
 ## **Index**
 
