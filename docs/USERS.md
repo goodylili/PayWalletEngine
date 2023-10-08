@@ -67,7 +67,7 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ---
 
-### **2. Retrieve User by ID**
+### <a name="retrieve-user-by-id"></a>**2. Retrieve User by ID**
 
 - **Endpoint**: `/{id}`
 - **HTTP Method**: `GET`
@@ -85,7 +85,7 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ---
 
-### **3. Update User**
+### <a name="update-user"></a>**3. Update User**
 
 - **Endpoint**: `/{id}/update`
 - **HTTP Method**: `PUT`
@@ -115,7 +115,7 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ---
 
-### **4. Change User Status**
+### <a name="change-user-status"></a>**4. Change User Status**
 
 - **Endpoint**: `/{id}/status`
 - **HTTP Method**: `PUT`
@@ -142,7 +142,7 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ---
 
-### **5. Retrieve User by Email**
+### <a name="retrieve-user-by-email"></a>**5. Retrieve User by Email**
 
 - **Endpoint**: `/email/{email}`
 - **HTTP Method**: `GET`
@@ -161,7 +161,7 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ---
 
-### **6. Retrieve User by Username**
+### <a name="retrieve-user-by-username"></a>**6. Retrieve User by Username**
 
 - **Endpoint**: `/username/{username}`
 - **HTTP Method**: `GET`
@@ -179,7 +179,7 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ---
 
-### **7. Health Check (Ping)**
+### <a name="health-check-ping"></a>**7. Health Check (Ping)**
 
 - **Endpoint**: `/ping`
 - **HTTP Method**: `GET`
@@ -196,7 +196,7 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ---
 
-### **8. Reset Password**
+### <a name="reset-password"></a>**8. Reset Password**
 
 - **Endpoint**: `/password/reset`
 - **HTTP Method**: `PUT`
