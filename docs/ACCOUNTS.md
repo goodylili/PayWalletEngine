@@ -1,15 +1,13 @@
-# **Accounts API Documentation**
-
+# Accounts API Documentation
 ---
 
-## **Overview**
+## Overview
 
 The Accounts API allows the management of user accounts within the platform. It provides endpoints for creating,
 retrieving, updating, and managing bank accounts.
 
 ---
-
-## **Index**
+## Index
 
 - **[Endpoints](#endpoints)**
     - [Create Account](#1-create-account)
@@ -21,7 +19,7 @@ retrieving, updating, and managing bank accounts.
 
 ---
 
-### **Base URL**: `/accounts/api/v1`
+#### **Base URL**: `/accounts/api/v1`
 
 ---
 

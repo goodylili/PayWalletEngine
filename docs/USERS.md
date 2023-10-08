@@ -4,20 +4,20 @@
 
 ## **Overview**
 
-The Users API allows the management of user accounts within the platform. It provides endpoints for creating, retrieving, updating, and managing user accounts.
+The Users API allows the management of user accounts within the platform. It provides endpoints for creating,
+retrieving, updating, and managing user accounts.
 
 ---
 
 ## **Index**
 
 - **[Endpoints](#endpoints)**
-  - [Create User](#create-user)
-  - [Retrieve User by ID](#retrieve-user-by-id)
-  - [Update User](#update-user)
-  - [Change User Status](#change-user-status)
-  - [Retrieve User by Email](#retrieve-user-by-email)
-  - [Retrieve User by Username](#retrieve-user-by-username)
-
+    - [Create User](#create-user)
+    - [Retrieve User by ID](#retrieve-user-by-id)
+    - [Update User](#update-user)
+    - [Change User Status](#change-user-status)
+    - [Retrieve User by Email](#retrieve-user-by-email)
+    - [Retrieve User by Username](#retrieve-user-by-username)
 
 ### **Base URL**: `/users/api/v1`
 
