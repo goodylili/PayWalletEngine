@@ -20,13 +20,13 @@ includes credit, debit, and fund transfers as well as retrieving transactions ba
 
 ---
 
-#### **Base URL**: `/api/v1/transactions`
+### **Base URL**: `/api/v1/transactions`
 
 ---
 
 ### **Models**
 
-#### <a name="the-transaction-object"></a>**The Transaction Object**
+### <a name="the-transaction-object"></a>**The Transaction Object**
 
 | Field            | Type      | Description                                |
 |------------------|-----------|--------------------------------------------|

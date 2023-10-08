@@ -25,7 +25,7 @@ retrieving, updating, and managing user accounts.
 
 ### **Models**
 
-#### **The User Object**
+### **The User Object**
 
 | Field       | Type    | Description                          | Restrictions               |
 |-------------|---------|--------------------------------------|----------------------------|

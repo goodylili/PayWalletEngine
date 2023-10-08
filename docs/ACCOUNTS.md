@@ -19,13 +19,13 @@ retrieving, updating, and managing bank accounts.
 
 ---
 
-#### **Base URL**: `/accounts/api/v1`
+### **Base URL**: `/accounts/api/v1`
 
 ---
 
 ### **Models**
 
-#### <a name="the-account-object"></a>**The Account Object**
+### <a name="the-account-object"></a>**The Account Object**
 
 | Field            | Type    | Description                                  |
 |------------------|---------|----------------------------------------------|
