@@ -50,11 +50,12 @@ To ensure your database connectivity is intact:
 
 For a deep dive into each category of endpoints, refer to the detailed documentation:
 
-- [Accounts](./accounts.md)
+
 - [Authentication](./auth.md)
-- [Error Codes](./errors.md)
-- [Transactions](./transactions.md)
 - [Users](./users.md)
+- [Accounts](./accounts.md)
+- [Transactions](./transactions.md)
+- [Error Codes](./errors.md)
 
 ---
 
