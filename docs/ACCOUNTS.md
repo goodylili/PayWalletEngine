@@ -49,10 +49,10 @@ retrieving, updating, and managing bank accounts.
 
 ```json
 {
-  "account_number": int64,
+  "account_number": "int64",
   "account_type": "string",
-  "balance": float64,
-  "user_id": uint
+  "balance": "float64",
+  "user_id": "uint"
 }
 ```
 
@@ -96,10 +96,10 @@ retrieving, updating, and managing bank accounts.
 
 ```json
 {
-  "account_number": int64,
+  "account_number": "int64",
   "account_type": "string",
-  "balance": float64,
-  "user_id": uint
+  "balance": "float64",
+  "user_id": "uint"
 }
 ```
 
