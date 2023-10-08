@@ -9,10 +9,6 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ## **Index**
 
-- **[Overview](#overview)**
-- **[Base URL](#base-url)**
-- **[Models](#models)**
-    - [The User Object](#the-user-object)
 - **[Endpoints](#endpoints)**
   - [Create User](#create-user)
   - [Retrieve User by ID](#retrieve-user-by-id)
@@ -22,7 +18,7 @@ The Users API allows the management of user accounts within the platform. It pro
   - [Retrieve User by Username](#retrieve-user-by-username)
   - [Health Check (Ping)](#health-check-ping)
   - [Reset Password](#reset-password)
----
+
 
 ### **Base URL**: `/users/api/v1`
 
