@@ -19,6 +19,8 @@ retrieving, updating, and managing bank accounts.
     - [Retrieve Account by Account Number](#5-retrieve-account-by-account-number)
     - [Retrieve Accounts by User ID](#6-retrieve-accounts-by-user-id)
 
+---
+
 ### **Base URL**: `/accounts/api/v1`
 
 ---
