@@ -28,7 +28,7 @@ includes credit, debit, and fund transfers as well as retrieving transactions ba
 | Field            | Type      | Description                                |
 |------------------|-----------|--------------------------------------------|
 | `transaction_id` | uuid.UUID | Unique identifier of the transaction.      |
-| `amount`         | float64   | Amount involved in the transaction.        |
+| `amount`         | float   | Amount involved in the transaction.        |
 | `paymentMethod`  | string    | Method of payment used in the transaction. |
 | `type`           | string    | Type of the transaction (credit, debit).   |
 | `status`         | string    | Status of the transaction.                 |

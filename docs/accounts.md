@@ -25,11 +25,11 @@ retrieving, updating, and managing bank accounts.
 
 | Field            | Type    | Description                                  |
 |------------------|---------|----------------------------------------------|
-| `id`             | uint    | Unique identifier of the account.            |
-| `account_number` | int64   | Unique account number.                       |
+| `id`             | int    | Unique identifier of the account.            |
+| `account_number` | int   | Unique account number.                       |
 | `account_type`   | string  | Type of the bank account.                    |
-| `balance`        | float64 | Current balance of the account.              |
-| `user_id`        | uint    | ID of the user associated with this account. |
+| `balance`        | float | Current balance of the account.              |
+| `user_id`        | int    | ID of the user associated with this account. |
 
 ---
 
@@ -94,7 +94,7 @@ retrieving, updating, and managing bank accounts.
   "id": 1,
   "account_type": "Investment",
   "balance": 2000.00,
-  "user_id": "uint"
+  "user_id": "int"
 }
 ```
 
