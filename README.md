@@ -23,7 +23,7 @@ features such as JWT authentication, account management, transaction processing,
     - [Prerequisites](#prerequisites-1)
     - [Running with Docker Compose](#running-with-docker-compose)
 - [Testing](#testing)
-- [API Documentation](docs/GETTING-STARTED.md)
+- [API Documentation](docs/readme.md)
 - [Technologies and Tools](#technologies-and-tools)
 - [Contributing](#contributing)
 - [License](#license)

@@ -25,8 +25,6 @@ Once you have the server running, you can check the health of the service by usi
 - `200 OK`: Service is healthy.
 - `500 Internal Server Error`: Service is down or facing issues.
 
-You can access this endpoint at `http://localhost:8080/ping`.
-
 ---
 
 ### <a name="database-health-check"></a>**2. Database Health Check**
@@ -52,11 +50,11 @@ To ensure your database connectivity is intact:
 
 For a deep dive into each category of endpoints, refer to the detailed documentation:
 
-- [Accounts](./ACCOUNTS.md)
-- [Authentication](./AUTH.md)
-- [Error Codes](./ERRORS.md)
-- [Transactions](./TRANSACTIONS.md)
-- [Users](./USERS.md)
+- [Accounts](./accounts.md)
+- [Authentication](./auth.md)
+- [Error Codes](./errors.md)
+- [Transactions](./transactions.md)
+- [Users](./users.md)
 
 ---
 
