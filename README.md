@@ -1,5 +1,3 @@
-Certainly! Here's your updated `README.md` file with the Docker Deployment instructions integrated:
-
 # PayWalletEngine
 
 <p>
@@ -19,7 +17,7 @@ features such as JWT authentication, account management, transaction processing,
 
 - [Getting Started](#getting-started)
     - [Prerequisites](#prerequisites)
-    - [Installation](#Installation and Setup)
+    - [Installation](#Installation-and-Setup)
 - [Usage](#usage)
 - [Docker Deployment](#docker-deployment)
     - [Prerequisites](#prerequisites-1)
