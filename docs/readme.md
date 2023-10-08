@@ -51,7 +51,7 @@ To ensure your database connectivity is intact:
 For a deep dive into each category of endpoints, refer to the detailed documentation:
 
 
-- [Authentication](./auth.md)
+- [Authentication](./auth.md) (Work-In-Progress)
 - [Users](./users.md)
 - [Accounts](./accounts.md)
 - [Transactions](./transactions.md)
