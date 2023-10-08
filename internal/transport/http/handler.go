@@ -68,7 +68,7 @@ func (h *Handler) mapRoutes() {
 	h.Router.HandleFunc("/ready", h.ReadyCheck).Methods("GET")
 
 	// Users Routes
-	h.Router.HandleFunc("/api/v1/user/create", h.CreateUser).Methods("POST")
+	h.Router.HandleFunc("/api/v1/users/create", h.CreateUser).Methods("POST")
 	h.Router.HandleFunc("/api/v1/users/{id}", h.GetUserByID).Methods("GET")
 	h.Router.HandleFunc("/api/v1/users/{id}/update", h.UpdateUser).Methods("PUT")
 	h.Router.HandleFunc("/api/v1/users/{id}/status", h.ChangeUserStatus).Methods("PUT")
