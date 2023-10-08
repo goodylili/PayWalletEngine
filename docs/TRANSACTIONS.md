@@ -87,10 +87,10 @@ includes credit, debit, and fund transfers as well as retrieving transactions ba
 
 ```json
 {
-  "receiver_account_number": "int64",
-  "amount": "float64",
-  "description": "string",
-  "payment_method": "string"
+  "receiver_account_number": 5867466691,
+  "amount": 100.00,
+  "description": "Credit transaction",
+  "payment_method": "Credit Card"
 }
 ```
 
@@ -112,10 +112,10 @@ includes credit, debit, and fund transfers as well as retrieving transactions ba
 
 ```json
 {
-  "sender_account_number": "int64",
-  "amount": "float64",
-  "description": "string",
-  "payment_method": "string"
+  "sender_account_number": 5867466691,
+  "amount": 10,
+  "description": "Fundsssss",
+  "payment_method": "Card"
 }
 ```
 
@@ -137,12 +137,13 @@ includes credit, debit, and fund transfers as well as retrieving transactions ba
 
 ```json
 {
-  "sender_account_number": "int64",
-  "receiver_account_number": "int64",
-  "amount": "float64",
-  "description": "string",
-  "payment_method": "string"
+  "sender_account_number": 5867466691,
+  "receiver_account_number": 1677203234,
+  "amount": 50,
+  "description": "Cha Ching",
+  "payment_method": "app transfer"
 }
+
 ```
 
 **Responses**:

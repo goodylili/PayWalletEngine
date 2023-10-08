@@ -18,6 +18,9 @@ retrieving, updating, and managing user accounts.
     - [Change User Status](#change-user-status)
     - [Retrieve User by Email](#retrieve-user-by-email)
     - [Retrieve User by Username](#retrieve-user-by-username)
+    - [8. Reset Password](#reset-password)
+
+
 
 ### **Base URL**: `/users/api/v1`
 
@@ -52,9 +55,11 @@ retrieving, updating, and managing user accounts.
 
 ```json
 {
-  "username": "string",
-  "email": "string",
-  "password": "string"
+  "username": "johanasr",
+  "email": "jamesocesf.doe@example.com",
+  "password": "supnnnsrer-secret-key",
+  "is_active": true
+
 }
 ```
 
@@ -98,8 +103,8 @@ retrieving, updating, and managing user accounts.
 
 ```json
 {
-  "username": "string",
-  "email": "string",
+  "username": "janeth_doe",
+  "email": "jane.doe@example.com"
   "password": "string",
   "is_active": true
 }
@@ -178,3 +183,24 @@ retrieving, updating, and managing user accounts.
 
 ---
 
+### <a name="reset-password"></a>**8. Reset Password**
+
+- **Endpoint**: `/password/reset`
+- **HTTP Method**: `PUT`
+- **Description**: Resets the user's password.
+
+**Request Body**:
+```json
+{
+   "username": "string",
+   "email": "string",
+   "password": "new_password"
+}
+```
+
+**Responses**:
+- `200 OK`: Password successfully reset.
+- `400 Bad Request`: Invalid input or malformed request.
+- `500 Internal Server Error`: Unexpected server error.
+
+---

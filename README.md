@@ -1,4 +1,6 @@
-# PayWalletEngine (WIP)
+Certainly! Here's your updated `README.md` file with the Docker Deployment instructions integrated:
+
+# PayWalletEngine
 
 <p>
    <a href="http://makeapullrequest.com"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat" alt=""></a>
@@ -19,6 +21,9 @@ features such as JWT authentication, account management, transaction processing,
     - [Prerequisites](#prerequisites)
     - [Installation](#Installation and Setup)
 - [Usage](#usage)
+- [Docker Deployment](#docker-deployment)
+    - [Prerequisites](#prerequisites-1)
+    - [Running with Docker Compose](#running-with-docker-compose)
 - [Testing](#testing)
 - [API Documentation](docs/GETTING-STARTED.md)
 - [Technologies and Tools](#technologies-and-tools)
@@ -77,6 +82,43 @@ To start the server, run the following command:
 
 The server will start and listen on the default port 8080.
 
+## Docker Deployment
+
+This application can be run using Docker Compose, which sets up the required services including a database and the
+application itself.
+
+### Prerequisites
+
+- [Docker](https://www.docker.com/get-started)
+- [Docker Compose](https://docs.docker.com/compose/install/)
+
+### Running with Docker Compose
+
+1. Ensure that Docker and Docker Compose are installed on your machine.
+
+2. Navigate to the project directory:
+
+```
+cd paywalletengine
+```
+
+3. Build and run the application and its services using Docker Compose:
+
+```
+docker-compose up --build
+```
+
+This will start up the `db` service using the PostgreSQL image and the `api` service which is your application. The
+application will connect to the database, and both will be accessible from your machine.
+
+To stop the services, simply run:
+
+```
+docker-compose down
+```
+
+This will gracefully shut down the containers and remove them.
+
 ## Testing
 
 To run the tests, run the following command:
@@ -100,4 +142,3 @@ Contributions are welcome! Feel free to open a pull request right away.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE) file for details
-

@@ -7,6 +7,7 @@ The Accounts API allows the management of user accounts within the platform. It 
 retrieving, updating, and managing bank accounts.
 
 ---
+
 ## Index
 
 - **[Endpoints](#endpoints)**
@@ -49,10 +50,9 @@ retrieving, updating, and managing bank accounts.
 
 ```json
 {
-  "account_number": "int64",
-  "account_type": "string",
-  "balance": "float64",
-  "user_id": "uint"
+  "account_type": "Checking",
+  "balance": 500.00,
+  "user_id": 1
 }
 ```
 
@@ -96,9 +96,9 @@ retrieving, updating, and managing bank accounts.
 
 ```json
 {
-  "account_number": "int64",
-  "account_type": "string",
-  "balance": "float64",
+  "id": 1,
+  "account_type": "Investment",
+  "balance": 2000.00,
   "user_id": "uint"
 }
 ```
