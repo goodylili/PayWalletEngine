@@ -39,7 +39,7 @@ The Users API allows the management of user accounts within the platform. It pro
 
 ## **Endpoints**:
 
-### **1. Create User**
+### <a name="create-user"></a>**1. Create User**
 
 - **Endpoint**: `/create`
 - **HTTP Method**: `POST`
