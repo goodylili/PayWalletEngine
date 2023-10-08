@@ -1,5 +1,4 @@
 # Transactions API Documentation
----
 
 ## Overview
 
