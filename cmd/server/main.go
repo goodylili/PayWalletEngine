@@ -41,7 +41,6 @@ func Run() error {
 }
 
 func main() {
-	fmt.Println("GO REST API Course")
 	if err := Run(); err != nil {
 		log.Println(err)
 	}
